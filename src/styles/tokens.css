@@ -1,0 +1,133 @@
+/* Arena design tokens – nguồn: project/ds/arena/tokens.json */
+:root {
+  color-scheme: light;
+  --surface: #f6f5f0;
+  --surface-raised: #ffffff;
+  --surface-sunken: #ecebe4;
+  --surface-hover: #e3e1d9;
+  --line: #dcdad0;
+  --line-soft: #ecebe4;
+  --line-strong: #83887f;
+  --ink: #151a16;
+  --ink-muted: #575e58;
+  --brand: #1f6b45;
+  --brand-strong: #17573a;
+  --on-brand: #ffffff;
+  --brand-tint: #dcefe3;
+  --brand-wash: #f3faf6;
+  --brand-ink: #14492f;
+  --volt: #d4f23a;
+  --on-volt: #151a16;
+  --clay: #b24d22;
+  --clay-tint: #f7e3d8;
+  --clay-ink: #7a3214;
+  --warning: #8a5600;
+  --warning-tint: #fbeccc;
+  --danger: #b3261e;
+  --danger-tint: #fbe1de;
+  --on-danger: #ffffff;
+  --info: #2459a8;
+  --info-tint: #e0eaf8;
+  --slot-blocked: #e3e1d9;
+  --focus: #2459a8;
+  --pass-bg: #151a16;
+  --pass-ink: #eef0ea;
+  --pass-muted: #a3aaa3;
+  --pass-track: #2e322e;
+  --pass-line: #4fbf83;
+
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 1px 2px rgba(21, 26, 22, 0.06), 0 2px 8px rgba(21, 26, 22, 0.04);
+  --shadow-pop: 0 8px 24px rgba(21, 26, 22, 0.14);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --surface: #121412;
+    --surface-raised: #1b1e1b;
+    --surface-sunken: #0c0d0c;
+    --surface-hover: #262926;
+    --line: #2e322e;
+    --line-soft: #262926;
+    --line-strong: #6f766f;
+    --ink: #eef0ea;
+    --ink-muted: #a3aaa3;
+    --brand: #4fbf83;
+    --brand-strong: #6fd39c;
+    --on-brand: #0b1a12;
+    --brand-tint: #173726;
+    --brand-wash: #142a1e;
+    --brand-ink: #a9e8c4;
+    --clay: #e8794a;
+    --clay-tint: #3a2116;
+    --clay-ink: #f5b898;
+    --warning: #f0b440;
+    --warning-tint: #3a2c0e;
+    --danger: #f2766b;
+    --danger-tint: #3d1714;
+    --on-danger: #1f0806;
+    --info: #7aa7ec;
+    --info-tint: #15243b;
+    --slot-blocked: #262926;
+    --focus: #d4f23a;
+    --pass-bg: #0c0d0c;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --surface: #121412;
+  --surface-raised: #1b1e1b;
+  --surface-sunken: #0c0d0c;
+  --surface-hover: #262926;
+  --line: #2e322e;
+  --line-soft: #262926;
+  --line-strong: #6f766f;
+  --ink: #eef0ea;
+  --ink-muted: #a3aaa3;
+  --brand: #4fbf83;
+  --brand-strong: #6fd39c;
+  --on-brand: #0b1a12;
+  --brand-tint: #173726;
+  --brand-wash: #142a1e;
+  --brand-ink: #a9e8c4;
+  --clay: #e8794a;
+  --clay-tint: #3a2116;
+  --clay-ink: #f5b898;
+  --warning: #f0b440;
+  --warning-tint: #3a2c0e;
+  --danger: #f2766b;
+  --danger-tint: #3d1714;
+  --on-danger: #1f0806;
+  --info: #7aa7ec;
+  --info-tint: #15243b;
+  --slot-blocked: #262926;
+  --focus: #d4f23a;
+  --pass-bg: #0c0d0c;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+/* Màu chuỗi biểu đồ khách cố định / vãng lai – đã qua kiểm tra mù màu (dataviz validator) */
+:root { --series-fixed: #2459a8; --series-walkin: #b24d22; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --series-fixed: #5b8fd9; --series-walkin: #d9733f; }
+}
+:root[data-theme="dark"] { --series-fixed: #5b8fd9; --series-walkin: #d9733f; }
+
+/* Màu chuỗi doanh thu thuê sân / sản phẩm (Dashboard) – khác cặp trên để không trùng nghĩa, đã qua validator */
+:root { --series-courts: #19804a; --series-products: #6250d6; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --series-courts: #3fa86f; --series-products: #9085e9; }
+}
+:root[data-theme="dark"] { --series-courts: #3fa86f; --series-products: #9085e9; }
