@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import { useMemo } from 'react';
 import { BarChart } from '../../components/BarChart';
 import { BookingGrid, BookingLegend } from '../../components/BookingGrid';
-import { CLASSES_TODAY, COURTS, KPIS, MEMBERS, NOW_HOUR, RENEW_SOON, TODAY_LABEL } from '../../data/mock';
+import { lockBookings, useCourts } from '../../store/courts';
+import { CLASSES_TODAY, KPIS, MEMBERS, NOW_HOUR, RENEW_SOON, TODAY_LABEL } from '../../data/mock';
 import { REPORT_TODAY } from '../../data/reports';
 import { vnd, vndShort } from '../../lib/format';
 import { dailyRevenue, summarize, toIso } from '../../lib/reports';
@@ -28,6 +29,7 @@ function revenueKpi() {
 
 export default function Dashboard() {
   const { bookings } = useBookings();
+  const { visible } = useCourts();
   const renew = RENEW_SOON.map((code) => MEMBERS.find((m) => m.code === code)!);
   const kpis = useMemo<((typeof KPIS)[number] & { highlight?: boolean })[]>(() => [revenueKpi(), ...KPIS], []);
   const week = useMemo(() => dailyRevenue(REPORT_TODAY, 7), []);
@@ -64,7 +66,7 @@ export default function Dashboard() {
             <h2 className="card-title">Lịch sân tối nay</h2>
             <Link to="/lich-dat-san" style={{ fontSize: 14, fontWeight: 600 }}>Mở lịch đầy đủ →</Link>
           </div>
-          <BookingGrid courts={COURTS} bookings={bookings} from={17} to={23} nowHour={NOW_HOUR} />
+          <BookingGrid courts={visible} bookings={[...bookings, ...lockBookings(visible)]} from={17} to={23} nowHour={NOW_HOUR} />
           <BookingLegend />
         </section>
 

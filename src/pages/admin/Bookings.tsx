@@ -1,34 +1,31 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { BookingGrid, BookingLegend } from '../../components/BookingGrid';
+import { CourtEditor } from '../../components/CourtEditor';
 import { Icon } from '../../components/Icon';
-import {
-  CLOSE_HOUR,
-  COURTS,
-  MEMBER_DISCOUNT,
-  NOW_HOUR,
-  OPEN_HOUR,
-  SPORTS,
-  TODAY_LABEL,
-  findMemberByPhone,
-  type Sport,
-} from '../../data/mock';
+import { SportBadge } from '../../components/SportIcon';
+import { MEMBER_DISCOUNT, NOW_HOUR, TODAY_LABEL, findMemberByPhone, type Sport } from '../../data/mock';
 import { hh, vnd } from '../../lib/format';
+import { useScheduleView } from '../../lib/scheduleView';
 import { useBookings } from '../../store/bookings';
+import { lockBookings, sportsIn, useCourts } from '../../store/courts';
 
 type Filter = 'all' | Sport;
 
 export default function Bookings() {
   const { bookings, addBooking, isFree } = useBookings();
+  const { visible } = useCourts();
+  const [view, setView] = useScheduleView();
+
   // ?san=cl2&gio=19 từ trang Trạng thái sân: lọc theo môn của sân và chọn sẵn ô giờ
   const [params] = useSearchParams();
-  const linked = COURTS.find((c) => c.id === params.get('san'));
+  const linked = visible.find((c) => c.id === params.get('san'));
   const linkedHour = Number(params.get('gio'));
   const [filter, setFilter] = useState<Filter>(linked ? linked.sport : 'all');
   const [sel, setSel] = useState<{ courtId: string; hour: number } | null>(
     !linked
       ? { courtId: 'cl2', hour: 19 }
-      : params.has('gio') && linkedHour >= OPEN_HOUR && linkedHour < CLOSE_HOUR
+      : params.has('gio') && linkedHour >= view.from && linkedHour < view.to
         ? { courtId: linked.id, hour: linkedHour }
         : null,
   );
@@ -37,11 +34,18 @@ export default function Bookings() {
   const [weekly, setWeekly] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const courts = useMemo(() => COURTS.filter((c) => filter === 'all' || c.sport === filter), [filter]);
-  const court = sel ? COURTS.find((c) => c.id === sel.courtId)! : null;
+  const [editing, setEditing] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+
+  const sports = sportsIn(visible);
+  const activeFilter: Filter = filter !== 'all' && sports.some((s) => s.id === filter) ? filter : 'all';
+  const courts = useMemo(() => visible.filter((c) => activeFilter === 'all' || c.sport === activeFilter), [visible, activeFilter]);
+  const gridBookings = useMemo(() => [...bookings, ...lockBookings(visible)], [bookings, visible]);
+
+  const court = sel ? (visible.find((c) => c.id === sel.courtId && !c.locked) ?? null) : null;
   const member = findMemberByPhone(phone);
 
-  const fits = !!sel && sel.hour + dur <= CLOSE_HOUR && isFree(sel.courtId, sel.hour, dur);
+  const fits = !!sel && !!court && sel.hour >= view.from && sel.hour + dur <= view.to && isFree(sel.courtId, sel.hour, dur);
   const subtotal = court ? court.price * dur : 0;
   const discount = member ? Math.round(subtotal * MEMBER_DISCOUNT) : 0;
   const total = subtotal - discount;
@@ -70,6 +74,13 @@ export default function Bookings() {
     setDur(1);
   };
 
+  const toggleEditing = () => {
+    setEditing((e) => !e);
+    setEditId(null);
+  };
+
+  const countFor = (courtId: string) => bookings.filter((b) => b.courtId === courtId).length;
+
   return (
     <div className="split" style={{ gap: 24 }}>
       <div className="wide" style={{ flex: '999 1 600px', display: 'flex', flexDirection: 'column', gap: 20 }}>
@@ -83,128 +94,157 @@ export default function Bookings() {
             <Icon name="chevronRight" />
           </button>
           <button className="btn btn-secondary" type="button">Hôm nay</button>
+          <button className={'btn ' + (editing ? 'btn-primary' : 'btn-secondary')} type="button" aria-pressed={editing} onClick={toggleEditing}>
+            <Icon name="sliders" />
+            {editing ? 'Đang tùy chỉnh' : 'Tùy chỉnh sân'}
+          </button>
         </header>
 
         <div role="group" aria-label="Lọc theo môn" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-          {([{ id: 'all', label: 'Tất cả sân' }, ...SPORTS] as { id: Filter; label: string }[]).map((f) => (
+          <button type="button" className={'chip' + (activeFilter === 'all' ? ' on' : '')} aria-pressed={activeFilter === 'all'} onClick={() => setFilter('all')}>
+            Tất cả sân <span className="chip-count">{visible.length}</span>
+          </button>
+          {sports.map((s) => (
             <button
-              key={f.id}
+              key={s.id}
               type="button"
-              className={'chip' + (filter === f.id ? ' on' : '')}
-              aria-pressed={filter === f.id}
-              onClick={() => setFilter(f.id)}
+              className={'chip chip-ic' + (activeFilter === s.id ? ' on' : '')}
+              aria-pressed={activeFilter === s.id}
+              onClick={() => setFilter(s.id)}
             >
-              {f.label}
+              <SportBadge sport={s.id} size={24} />
+              {s.label}
+              <span className="chip-count">{visible.filter((c) => c.sport === s.id).length}</span>
             </button>
           ))}
         </div>
 
+        {editing && (
+          <div className="toast info" role="status">
+            <Icon name="sliders" />
+            <span>Đang tùy chỉnh – bấm tên sân trên lịch hoặc trong danh sách bên phải để sửa. Thay đổi áp dụng ngay.</span>
+          </div>
+        )}
+
         <section className="card" style={{ padding: 16 }}>
           <BookingGrid
             courts={courts}
-            bookings={bookings}
-            from={OPEN_HOUR}
-            to={CLOSE_HOUR}
+            bookings={gridBookings}
+            from={view.from}
+            to={view.to}
             nowHour={NOW_HOUR}
             size="lg"
             showKind
-            selected={sel ? { ...sel, span: fits ? dur : 1 } : null}
-            onPick={pick}
+            showPrice={view.showPrice}
+            dense={view.dense}
+            selected={!editing && sel ? { ...sel, span: fits ? dur : 1 } : null}
+            onPick={editing ? undefined : pick}
+            onCourtClick={editing ? (id) => setEditId((cur) => (cur === id ? null : id)) : undefined}
+            activeCourtId={editId}
           />
-          <BookingLegend withSelected />
+          <BookingLegend withSelected={!editing} />
         </section>
       </div>
 
       <aside
         className="card side"
-        aria-label="Tạo đơn đặt sân"
+        aria-label={editing ? 'Tùy chỉnh sân' : 'Tạo đơn đặt sân'}
         style={{ flex: '1 1 340px', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}
       >
-        {notice && (
-          <div className="toast" role="status">
-            <Icon name="check" />
-            <span>{notice}</span>
-          </div>
-        )}
-
-        {!court || !sel ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <span className="lbl">Đơn đặt sân mới</span>
-            <p className="muted" style={{ fontSize: 14 }}>Chọn một ô trống trên lịch để tạo đơn.</p>
-          </div>
+        {editing ? (
+          <CourtEditor editId={editId} setEditId={setEditId} view={view} setView={setView} bookingCount={countFor} onDone={toggleEditing} />
         ) : (
           <>
-            <div>
-              <span className="lbl">Đơn đặt sân mới</span>
-              <h2 style={{ margin: '4px 0 0', font: '700 32px/36px var(--font-display)' }}>{court.name}</h2>
-              <p style={{ marginTop: 2, fontSize: 14, color: 'var(--ink-muted)' }}>
-                Chủ nhật 18/10 · <b style={{ color: 'var(--ink)' }}>{hh(sel.hour)} – {hh(sel.hour + dur)}</b>
-              </p>
-            </div>
-
-            <label className="field">
-              Thời lượng
-              <select className="inp" value={dur} onChange={(e) => setDur(Number(e.target.value))}>
-                {[1, 2, 3].map((n) => (
-                  <option key={n} value={n}>{n} giờ</option>
-                ))}
-              </select>
-            </label>
-            {!fits && (
-              <div className="toast warn" role="alert">
-                Khung {hh(sel.hour)}–{hh(sel.hour + dur)} bị trùng lịch hoặc quá giờ đóng cửa. Giảm thời lượng hoặc chọn ô khác.
+            {notice && (
+              <div className="toast" role="status">
+                <Icon name="check" />
+                <span>{notice}</span>
               </div>
             )}
 
-            <label className="field">
-              Số điện thoại khách
-              <input className="inp" type="tel" inputMode="numeric" placeholder="09xx xxx xxx" value={phone} onChange={(e) => setPhone(e.target.value)} />
-            </label>
-
-            {member ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, borderRadius: 10, background: 'var(--brand-tint)', color: 'var(--brand-ink)' }}>
-                <span className="avatar" style={{ width: 36, height: 36, background: 'var(--brand)', color: 'var(--on-brand)' }} aria-hidden="true">{member.ini}</span>
-                <div style={{ flex: 1, fontSize: 13, lineHeight: '18px' }}>
-                  <b style={{ fontSize: 14 }}>{member.name}</b>
-                  <br />
-                  Hội viên {member.plan} · giảm {MEMBER_DISCOUNT * 100}%
-                </div>
+            {!court || !sel ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <span className="lbl">Đơn đặt sân mới</span>
+                <p className="muted" style={{ fontSize: 14 }}>Chọn một ô trống trên lịch để tạo đơn.</p>
               </div>
             ) : (
-              <div style={{ padding: 12, borderRadius: 10, background: 'var(--surface-sunken)', color: 'var(--ink-muted)', fontSize: 13 }}>
-                Khách lẻ – không có ưu đãi hội viên.
-              </div>
-            )}
-
-            <label className="check">
-              <input type="checkbox" checked={weekly} onChange={(e) => setWeekly(e.target.checked)} /> Đặt cố định hằng tuần
-            </label>
-
-            <div style={{ borderTop: '1px solid var(--line)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>
-              <div className="line">
-                <span className="muted">{vnd(court.price)} × {dur} giờ</span>
-                <span className="num" style={{ fontSize: 18 }}>{vnd(subtotal)}</span>
-              </div>
-              {member && (
-                <div className="line">
-                  <span className="muted">Ưu đãi hội viên −{MEMBER_DISCOUNT * 100}%</span>
-                  <span className="num" style={{ fontSize: 18, color: 'var(--brand)' }}>{vnd(-discount)}</span>
+              <>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+                  <SportBadge sport={court.sport} size={44} />
+                  <div>
+                    <span className="lbl">Đơn đặt sân mới</span>
+                    <h2 style={{ margin: '2px 0 0', font: '700 32px/36px var(--font-display)' }}>{court.name}</h2>
+                  </div>
                 </div>
-              )}
-              <div className="line" style={{ alignItems: 'baseline', marginTop: 4 }}>
-                <b>Tổng cộng</b>
-                <span className="num" style={{ fontSize: 32, fontWeight: 600 }}>{vnd(total)}</span>
-              </div>
-            </div>
+                <p style={{ marginTop: -8, fontSize: 14, color: 'var(--ink-muted)' }}>
+                  Chủ nhật 18/10 · <b style={{ color: 'var(--ink)' }}>{hh(sel.hour)} – {hh(sel.hour + dur)}</b>
+                </p>
 
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <button className="btn btn-secondary" type="button" style={{ flex: '1 1 120px' }} disabled={!fits} onClick={() => create(true)}>
-                Giữ chỗ, chờ cọc
-              </button>
-              <button className="btn btn-primary" type="button" style={{ flex: '1 1 120px' }} disabled={!fits} onClick={() => create(false)}>
-                Xác nhận &amp; thu tiền
-              </button>
-            </div>
+                <label className="field">
+                  Thời lượng
+                  <select className="inp" value={dur} onChange={(e) => setDur(Number(e.target.value))}>
+                    {[1, 2, 3].map((n) => (
+                      <option key={n} value={n}>{n} giờ</option>
+                    ))}
+                  </select>
+                </label>
+                {!fits && (
+                  <div className="toast warn" role="alert">
+                    Khung {hh(sel.hour)}–{hh(sel.hour + dur)} bị trùng lịch hoặc quá giờ đóng cửa. Giảm thời lượng hoặc chọn ô khác.
+                  </div>
+                )}
+
+                <label className="field">
+                  Số điện thoại khách
+                  <input className="inp" type="tel" inputMode="numeric" placeholder="09xx xxx xxx" value={phone} onChange={(e) => setPhone(e.target.value)} />
+                </label>
+
+                {member ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: 12, borderRadius: 10, background: 'var(--brand-tint)', color: 'var(--brand-ink)' }}>
+                    <span className="avatar" style={{ width: 36, height: 36, background: 'var(--brand)', color: 'var(--on-brand)' }} aria-hidden="true">{member.ini}</span>
+                    <div style={{ flex: 1, fontSize: 13, lineHeight: '18px' }}>
+                      <b style={{ fontSize: 14 }}>{member.name}</b>
+                      <br />
+                      Hội viên {member.plan} · giảm {MEMBER_DISCOUNT * 100}%
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ padding: 12, borderRadius: 10, background: 'var(--surface-sunken)', color: 'var(--ink-muted)', fontSize: 13 }}>
+                    Khách lẻ – không có ưu đãi hội viên.
+                  </div>
+                )}
+
+                <label className="check">
+                  <input type="checkbox" checked={weekly} onChange={(e) => setWeekly(e.target.checked)} /> Đặt cố định hằng tuần
+                </label>
+
+                <div style={{ borderTop: '1px solid var(--line)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>
+                  <div className="line">
+                    <span className="muted">{vnd(court.price)} × {dur} giờ</span>
+                    <span className="num" style={{ fontSize: 18 }}>{vnd(subtotal)}</span>
+                  </div>
+                  {member && (
+                    <div className="line">
+                      <span className="muted">Ưu đãi hội viên −{MEMBER_DISCOUNT * 100}%</span>
+                      <span className="num" style={{ fontSize: 18, color: 'var(--brand)' }}>{vnd(-discount)}</span>
+                    </div>
+                  )}
+                  <div className="line" style={{ alignItems: 'baseline', marginTop: 4 }}>
+                    <b>Tổng cộng</b>
+                    <span className="num" style={{ fontSize: 32, fontWeight: 600 }}>{vnd(total)}</span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button className="btn btn-secondary" type="button" style={{ flex: '1 1 120px' }} disabled={!fits} onClick={() => create(true)}>
+                    Giữ chỗ, chờ cọc
+                  </button>
+                  <button className="btn btn-primary" type="button" style={{ flex: '1 1 120px' }} disabled={!fits} onClick={() => create(false)}>
+                    Xác nhận &amp; thu tiền
+                  </button>
+                </div>
+              </>
+            )}
           </>
         )}
       </aside>

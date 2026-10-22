@@ -11,9 +11,11 @@ import MemberCheckout from './pages/member/Checkout';
 import MemberHome from './pages/member/Home';
 import Placeholder from './pages/Placeholder';
 import { BookingProvider } from './store/bookings';
+import { CourtsProvider } from './store/courts';
 
 export default function App() {
   return (
+    <CourtsProvider>
     <BookingProvider>
       <Routes>
         {/* Quản trị – lễ tân & chủ cơ sở */}
@@ -40,5 +42,6 @@ export default function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BookingProvider>
+    </CourtsProvider>
   );
 }

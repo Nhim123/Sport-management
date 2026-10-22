@@ -1,7 +1,8 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
-import { CLOSE_HOUR, COURTS, NOW_HOUR, OPEN_HOUR, SPORTS, TODAY_LABEL, type Booking, type Sport } from '../../data/mock';
+import { isLockId, lockBookings, sportsIn, useCourts } from '../../store/courts';
+import { CLOSE_HOUR, NOW_HOUR, OPEN_HOUR, SPORTS, TODAY_LABEL, type Booking, type Sport } from '../../data/mock';
 import { SOON_MINUTES, courtStatus, fmtDuration, type CourtStatus, type CourtStatusKind } from '../../lib/courtStatus';
 import { hh, hm } from '../../lib/format';
 import { useBookings } from '../../store/bookings';
@@ -46,14 +47,18 @@ interface Actions {
 
 export default function CourtStatusPage() {
   const { bookings, addBooking, updateBooking, removeBooking, isFree } = useBookings();
+  const { visible, updateCourt } = useCourts();
   const [t, setT] = useState(NOW_HOUR);
   const [sport, setSport] = useState<SportFilter>('all');
   const [group, setGroup] = useState<Group | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
   const statuses = useMemo(
-    () => COURTS.filter((c) => sport === 'all' || c.sport === sport).map((c) => courtStatus(c, bookings, t)),
-    [bookings, sport, t],
+    () => {
+      const all = [...bookings, ...lockBookings(visible)];
+      return visible.filter((c) => sport === 'all' || c.sport === sport).map((c) => courtStatus(c, all, t));
+    },
+    [bookings, visible, sport, t],
   );
   const counts = useMemo(() => {
     const n: Record<Group, number> = { busy: 0, soon: 0, free: 0, pending: 0, blocked: 0 };
@@ -86,6 +91,11 @@ export default function CourtStatusPage() {
         setNotice(`Đã khóa ${name} ${hh(hour)}–${hh(hour + 1)}.`);
       },
       unlock: (b) => {
+        if (isLockId(b.id)) {
+          updateCourt(s.court.id, { locked: false });
+          setNotice(`Đã mở lại ${name} – sân nhận đặt trở lại.`);
+          return;
+        }
         // Giữ phần đã qua trong lịch, chỉ bỏ phần còn lại
         if (b.start < hour) updateBooking(b.id, { span: hour - b.start });
         else removeBooking(b.id);
@@ -152,7 +162,7 @@ export default function CourtStatusPage() {
 
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
         <div role="group" aria-label="Lọc theo môn" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, flex: '1 1 auto' }}>
-          {([{ id: 'all', label: 'Tất cả sân' }, ...SPORTS] as { id: SportFilter; label: string }[]).map((f) => (
+          {([{ id: 'all', label: 'Tất cả sân' }, ...sportsIn(visible)] as { id: SportFilter; label: string }[]).map((f) => (
             <button
               key={f.id}
               type="button"
@@ -231,9 +241,9 @@ function CourtCard({ s, t, canLock, actions }: { s: CourtStatus; t: number; canL
               {current.sub && <span className="muted">{current.sub}</span>}
             </div>
             <div className="cs-row">
-              <span className="muted">{hh(current.start)} – {hh(current.start + current.span)}</span>
+              <span className="muted">{isLockId(current.id) ? 'Cả ngày' : `${hh(current.start)} – ${hh(current.start + current.span)}`}</span>
               <span className={'cs-left' + (endingSoon ? ' warn' : '')}>
-                {kind === 'blocked' ? `Mở lại sau ${fmtDuration(s.minutesLeft)}` : `Còn ${fmtDuration(s.minutesLeft)}`}
+                {isLockId(current.id) ? 'Tạm ngừng dài ngày' : kind === 'blocked' ? `Mở lại sau ${fmtDuration(s.minutesLeft)}` : `Còn ${fmtDuration(s.minutesLeft)}`}
               </span>
             </div>
             <div

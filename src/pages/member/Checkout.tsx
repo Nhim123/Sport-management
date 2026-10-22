@@ -4,6 +4,7 @@ import { Icon } from '../../components/Icon';
 import { COURTS, CURRENT_MEMBER_CODE, MEMBER_DISCOUNT, MEMBERS, RACKET_RENT } from '../../data/mock';
 import { hh, vnd } from '../../lib/format';
 import { useBookings } from '../../store/bookings';
+import { useCourts } from '../../store/courts';
 import type { CheckoutState } from './Booking';
 
 const DEFAULT: CheckoutState = { courtId: 'cl2', dayIndex: 0, dayLabel: 'Chủ nhật 18/10', hour: 19 };
@@ -19,7 +20,8 @@ const METHODS = [
 export default function MemberCheckout() {
   const { state } = useLocation() as { state: CheckoutState | null };
   const order = state ?? DEFAULT;
-  const court = COURTS.find((c) => c.id === order.courtId)!;
+  const { courts } = useCourts();
+  const court = courts.find((c) => c.id === order.courtId) ?? COURTS.find((c) => c.id === order.courtId) ?? courts[0];
   const me = MEMBERS.find((m) => m.code === CURRENT_MEMBER_CODE)!;
   const { addBooking, isFree } = useBookings();
 

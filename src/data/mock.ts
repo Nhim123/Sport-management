@@ -1,6 +1,6 @@
 // Dữ liệu mẫu lấy từ bản thiết kế Arena – thay bằng API thật khi có backend.
 
-export type Sport = 'cl' | 'pb' | 'tn' | 'bd';
+export type Sport = 'cl' | 'pb' | 'tn' | 'bd' | 'br' | 'bc';
 export type SlotState = 'booked' | 'class' | 'pending' | 'blocked';
 export type Tone = 'success' | 'warning' | 'danger' | 'neutral' | 'class' | 'info';
 
@@ -11,6 +11,10 @@ export interface Court {
   mobileKind: string;
   sport: Sport;
   price: number; // ₫ / giờ
+  /** Ẩn khỏi lịch đặt sân, trạng thái sân và app hội viên (vẫn giữ trong danh sách tùy chỉnh) */
+  hidden?: boolean;
+  /** Tạm ngừng nhận đặt (bảo trì dài ngày) – cả hàng trên lịch bị khóa */
+  locked?: boolean;
 }
 
 export interface Booking {
@@ -30,6 +34,8 @@ export const SPORTS: { id: Sport; label: string; short: string }[] = [
   { id: 'pb', label: 'Pickleball', short: 'Pickleball' },
   { id: 'tn', label: 'Tennis', short: 'Tennis' },
   { id: 'bd', label: 'Bóng đá mini', short: 'Bóng đá' },
+  { id: 'br', label: 'Bóng rổ', short: 'Bóng rổ' },
+  { id: 'bc', label: 'Bóng chuyền', short: 'Bóng chuyền' },
 ];
 
 export const COURTS: Court[] = [

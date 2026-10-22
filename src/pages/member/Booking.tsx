@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Icon } from '../../components/Icon';
-import { COURTS, MEMBER_DISCOUNT, SPORTS, type Sport } from '../../data/mock';
+import { MEMBER_DISCOUNT, type Sport } from '../../data/mock';
+import { sportsIn, useCourts } from '../../store/courts';
 import { hh, vnd } from '../../lib/format';
 import { useBookings } from '../../store/bookings';
 
@@ -21,13 +22,26 @@ const FUTURE_TAKEN = [18, 19];
 export default function MemberBooking() {
   const navigate = useNavigate();
   const { isFree } = useBookings();
+  const { visible } = useCourts();
   const [sport, setSport] = useState<Sport>('cl');
   const [day, setDay] = useState(0);
   const [courtIdx, setCourtIdx] = useState(0);
   const [hour, setHour] = useState<number | null>(null);
 
-  const courts = COURTS.filter((c) => c.sport === sport);
+  // Chỉ sân đang hiện và không tạm ngừng mới nhận đặt qua app
+  const bookable = visible.filter((c) => !c.locked);
+  const sports = sportsIn(bookable);
+  const activeSport = sports.some((s) => s.id === sport) ? sport : sports[0]?.id;
+  const courts = bookable.filter((c) => c.sport === activeSport);
   const court = courts[Math.min(courtIdx, courts.length - 1)];
+  if (!court) {
+    return (
+      <div className="m-body">
+        <h1 className="m-title">Đặt sân</h1>
+        <p className="muted">Hiện chưa có sân nào nhận đặt qua app.</p>
+      </div>
+    );
+  }
 
   const taken = (h: number) => (day === 0 ? !isFree(court.id, h, 1) : FUTURE_TAKEN.includes(h));
   const firstFree = TIMES.find((h) => h >= 19 && !taken(h)) ?? TIMES.find((h) => !taken(h)) ?? null;
@@ -46,12 +60,12 @@ export default function MemberBooking() {
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 18, padding: '4px 0 24px' }}>
         <div role="group" aria-label="Chọn môn" className="m-chips" style={{ padding: '0 20px' }}>
-          {SPORTS.map((s) => (
+          {sports.map((s) => (
             <button
               key={s.id}
               type="button"
-              className={'chip' + (sport === s.id ? ' on' : '')}
-              aria-pressed={sport === s.id}
+              className={'chip' + (activeSport === s.id ? ' on' : '')}
+              aria-pressed={activeSport === s.id}
               onClick={() => { setSport(s.id); setCourtIdx(0); }}
             >
               {s.short}

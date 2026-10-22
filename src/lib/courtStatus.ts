@@ -29,7 +29,9 @@ const KIND_BY_STATE: Record<Booking['state'], CourtStatusKind> = {
 /** t là giờ thập phân: 19.25 = 19:15 */
 export function courtStatus(court: Court, bookings: Booking[], t: number): CourtStatus {
   const mine = bookings.filter((b) => b.courtId === court.id).sort((a, b) => a.start - b.start);
-  const current = mine.find((b) => b.start <= t && t < b.start + b.span);
+  const covering = mine.filter((b) => b.start <= t && t < b.start + b.span);
+  // Lượt thật được ưu tiên hơn lượt khóa cả ngày của sân tạm ngừng (id "lock-…")
+  const current = covering.find((b) => !b.id.startsWith('lock-')) ?? covering[0];
   const next = mine.find((b) => b.start > t);
 
   if (current) {
