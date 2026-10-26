@@ -7,6 +7,7 @@ import Dashboard from './pages/admin/Dashboard';
 import Members from './pages/admin/Members';
 import Plans from './pages/admin/Plans';
 import Reports from './pages/admin/Reports';
+import StaffPage from './pages/admin/Staff';
 import TournamentCreate from './pages/admin/TournamentCreate';
 import TournamentDetail from './pages/admin/TournamentDetail';
 import Tournaments from './pages/admin/Tournaments';
@@ -17,6 +18,7 @@ import Placeholder from './pages/Placeholder';
 import { BookingProvider } from './store/bookings';
 import { CourtsProvider } from './store/courts';
 import { PlanProvider } from './store/plans';
+import { StaffProvider } from './store/staff';
 import { TournamentProvider } from './store/tournaments';
 
 export default function App() {
@@ -25,6 +27,7 @@ export default function App() {
     <BookingProvider>
     <TournamentProvider>
     <PlanProvider>
+    <StaffProvider>
       <Routes>
         {/* Quản trị – lễ tân & chủ cơ sở */}
         <Route element={<AdminLayout />}>
@@ -38,6 +41,7 @@ export default function App() {
           <Route path="lop-hoc" element={<Placeholder title="Lớp học & PT" />} />
           <Route path="goi-tap" element={<Plans />} />
           <Route path="thanh-toan" element={<Placeholder title="Thanh toán" />} />
+          <Route path="nhan-vien" element={<StaffPage />} />
           <Route path="bao-cao" element={<Reports />} />
           <Route path="cai-dat" element={<Placeholder title="Cài đặt" />} />
         </Route>
@@ -52,6 +56,7 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+    </StaffProvider>
     </PlanProvider>
     </TournamentProvider>
     </BookingProvider>

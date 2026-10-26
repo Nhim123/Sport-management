@@ -48,6 +48,7 @@ const PATHS: Record<string, ReactNode> = {
   basketball: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3v18M5.6 5.6c3 3.3 3 9.5 0 12.8M18.4 5.6c-3 3.3-3 9.5 0 12.8" /></>,
   volleyball: <><circle cx="12" cy="12" r="9" /><path d="M12 3c-.3 4.6 1.7 8 6.4 9.6M12 12c-4.3 1.5-6.6 4.3-7.2 7M12 12c3.6 2.3 5.6 5.1 5.6 7.3M12 12c-1.8-3.9-5-6.4-8.7-6.6" /></>,
   trophy: <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3" />,
+  idcard: <><rect x="3" y="5" width="18" height="14" rx="2" /><circle cx="9" cy="11" r="2.5" /><path d="M5.5 16.5c.6-1.6 1.9-2.5 3.5-2.5s2.9.9 3.5 2.5M14 9h5M14 12h5M14 15h3" /></>,
   // Tùy chỉnh
   sliders: <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M14 4v4M8 10v4M16 16v4" />,
   arrowUp: <path d="M12 19V5M6 11l6-6 6 6" />,

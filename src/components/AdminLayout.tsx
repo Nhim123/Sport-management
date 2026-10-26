@@ -13,6 +13,7 @@ const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: '/lop-hoc', label: 'Lớp học & PT', icon: 'dumbbell' },
   { to: '/goi-tap', label: 'Gói tập', icon: 'tag' },
   { to: '/thanh-toan', label: 'Thanh toán', icon: 'card' },
+  { to: '/nhan-vien', label: 'Nhân viên', icon: 'idcard' },
   { to: '/bao-cao', label: 'Báo cáo', icon: 'chart' },
   { to: '/cai-dat', label: 'Cài đặt', icon: 'settings' },
 ];
