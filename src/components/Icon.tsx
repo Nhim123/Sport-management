@@ -47,6 +47,7 @@ const PATHS: Record<string, ReactNode> = {
   football: <><circle cx="12" cy="12" r="9" /><path d="m12 7.5 4 2.9-1.5 4.6h-5L8 10.4zM12 7.5V3M16 10.4l4.2-1.4M14.5 15l2.6 3.6M9.5 15l-2.6 3.6M8 10.4 3.8 9" /></>,
   basketball: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3v18M5.6 5.6c3 3.3 3 9.5 0 12.8M18.4 5.6c-3 3.3-3 9.5 0 12.8" /></>,
   volleyball: <><circle cx="12" cy="12" r="9" /><path d="M12 3c-.3 4.6 1.7 8 6.4 9.6M12 12c-4.3 1.5-6.6 4.3-7.2 7M12 12c3.6 2.3 5.6 5.1 5.6 7.3M12 12c-1.8-3.9-5-6.4-8.7-6.6" /></>,
+  trophy: <path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3" />,
   // Tùy chỉnh
   sliders: <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M14 4v4M8 10v4M16 16v4" />,
   arrowUp: <path d="M12 19V5M6 11l6-6 6 6" />,

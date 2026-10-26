@@ -6,17 +6,22 @@ import CourtStatus from './pages/admin/CourtStatus';
 import Dashboard from './pages/admin/Dashboard';
 import Members from './pages/admin/Members';
 import Reports from './pages/admin/Reports';
+import TournamentCreate from './pages/admin/TournamentCreate';
+import TournamentDetail from './pages/admin/TournamentDetail';
+import Tournaments from './pages/admin/Tournaments';
 import MemberBooking from './pages/member/Booking';
 import MemberCheckout from './pages/member/Checkout';
 import MemberHome from './pages/member/Home';
 import Placeholder from './pages/Placeholder';
 import { BookingProvider } from './store/bookings';
 import { CourtsProvider } from './store/courts';
+import { TournamentProvider } from './store/tournaments';
 
 export default function App() {
   return (
     <CourtsProvider>
     <BookingProvider>
+    <TournamentProvider>
       <Routes>
         {/* Quản trị – lễ tân & chủ cơ sở */}
         <Route element={<AdminLayout />}>
@@ -24,6 +29,9 @@ export default function App() {
           <Route path="lich-dat-san" element={<Bookings />} />
           <Route path="trang-thai-san" element={<CourtStatus />} />
           <Route path="hoi-vien" element={<Members />} />
+          <Route path="giai-dau" element={<Tournaments />} />
+          <Route path="giai-dau/tao-moi" element={<TournamentCreate />} />
+          <Route path="giai-dau/:id" element={<TournamentDetail />} />
           <Route path="lop-hoc" element={<Placeholder title="Lớp học & PT" />} />
           <Route path="goi-tap" element={<Placeholder title="Gói tập" />} />
           <Route path="thanh-toan" element={<Placeholder title="Thanh toán" />} />
@@ -41,6 +49,7 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+    </TournamentProvider>
     </BookingProvider>
     </CourtsProvider>
   );

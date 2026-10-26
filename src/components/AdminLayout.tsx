@@ -9,6 +9,7 @@ const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: '/lich-dat-san', label: 'Lịch đặt sân', icon: 'calendar' },
   { to: '/trang-thai-san', label: 'Trạng thái sân', icon: 'activity' },
   { to: '/hoi-vien', label: 'Hội viên', icon: 'users' },
+  { to: '/giai-dau', label: 'Giải đấu', icon: 'trophy' },
   { to: '/lop-hoc', label: 'Lớp học & PT', icon: 'dumbbell' },
   { to: '/goi-tap', label: 'Gói tập', icon: 'tag' },
   { to: '/thanh-toan', label: 'Thanh toán', icon: 'card' },
