@@ -1,9 +1,11 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Num, PrimaryButton, ScreenHeader, T } from '../components/ui';
-import { COURTS, DOW, MEMBER_DISCOUNT, SPORTS, TIMES, TODAY, isTaken, type Sport } from '../data/mock';
+import { DOW, MEMBER_DISCOUNT, SPORTS, TIMES, TODAY } from '../constants';
+import type { Sport } from '../types/domain';
+import { useCourts, useTakenSlots } from '../hooks';
 import { hh, vnd } from '../lib/format';
 import { radius, useColors } from '../theme/tokens';
 
@@ -14,9 +16,20 @@ export default function BookingScreen() {
   const [courtIdx, setCourtIdx] = useState(0);
   const [hour, setHour] = useState<number | null>(null);
 
-  const courts = COURTS.filter((x) => x.sport === sport);
-  const court = courts[Math.min(courtIdx, courts.length - 1)];
-  const taken = (h: number) => isTaken(court.id, day, h);
+  const { data: allCourts = [] } = useCourts();
+  const courts = allCourts.filter((x) => x.sport === sport);
+  const court = courts.length ? courts[Math.min(courtIdx, courts.length - 1)] : undefined;
+  const { data: takenSlots = [] } = useTakenSlots(court?.id, day);
+
+  if (!court) {
+    return (
+      <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={c.brand} />
+      </SafeAreaView>
+    );
+  }
+
+  const taken = (h: number) => takenSlots.includes(h);
   const firstFree = TIMES.find((h) => h >= 19 && !taken(h)) ?? TIMES.find((h) => !taken(h)) ?? null;
   const time = hour !== null && !taken(hour) ? hour : firstFree;
   const price = Math.round(court.price * (1 - MEMBER_DISCOUNT));

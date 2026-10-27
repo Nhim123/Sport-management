@@ -1,14 +1,25 @@
 import { Link } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Circle, Line, Rect } from 'react-native-svg';
 import { Icon, type IconName } from '../../components/Icon';
 import { Card, Label, Num, T } from '../../components/ui';
-import { CLASSES_TONIGHT, ME, MY_SCHEDULE } from '../../data/mock';
+import { useMe, useMySchedule, useTonightClasses } from '../../hooks';
 import { radius, useColors } from '../../theme/tokens';
 
 export default function HomeScreen() {
   const c = useColors();
+  const { data: me } = useMe();
+  const { data: schedule = [] } = useMySchedule();
+  const { data: classes = [] } = useTonightClasses();
+
+  if (!me) {
+    return (
+      <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: c.surface, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={c.brand} />
+      </SafeAreaView>
+    );
+  }
 
   const shortcuts: { href: '/dat-san' | '/lop-hoc'; label: string; icon: IconName; clay?: boolean }[] = [
     { href: '/dat-san', label: 'Đặt sân', icon: 'calendar' },
@@ -23,7 +34,7 @@ export default function HomeScreen() {
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
             <T size={13} color={c.inkMuted}>Chào buổi tối,</T>
-            <T size={22} w={700}>{ME.firstName}</T>
+            <T size={22} w={700}>{me.firstName}</T>
           </View>
           <Pressable
             accessibilityRole="button"
@@ -41,14 +52,14 @@ export default function HomeScreen() {
             <Line x1={100} y1={10} x2={100} y2={130} stroke={c.passLine} strokeWidth={2} />
             <Circle cx={100} cy={70} r={24} fill="none" stroke={c.passLine} strokeWidth={2} />
           </Svg>
-          <Label color={c.passMuted}>{ME.plan}</Label>
+          <Label color={c.passMuted}>{me.plan}</Label>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 6 }}>
-            <Num size={44} color={c.passInk}>{ME.daysLeft}</Num>
+            <Num size={44} color={c.passInk}>{me.daysLeft}</Num>
             <Num size={20} w={600} color={c.passInk}>ngày còn lại</Num>
           </View>
-          <T size={13} color={c.passMuted}>Hạn đến {ME.until} · PT còn {ME.ptLeft} buổi</T>
-          <View style={[styles.track, { backgroundColor: c.passTrack }]} accessibilityLabel={`Đã dùng ${ME.usedPct}% thời hạn gói`}>
-            <View style={{ width: `${ME.usedPct}%`, height: 6, backgroundColor: c.volt }} />
+          <T size={13} color={c.passMuted}>Hạn đến {me.until} · PT còn {me.ptLeft} buổi</T>
+          <View style={[styles.track, { backgroundColor: c.passTrack }]} accessibilityLabel={`Đã dùng ${me.usedPct}% thời hạn gói`}>
+            <View style={{ width: `${me.usedPct}%`, height: 6, backgroundColor: c.volt }} />
           </View>
           <Pressable accessibilityRole="button" style={({ pressed }) => [styles.passCta, { backgroundColor: c.volt, opacity: pressed ? 0.85 : 1 }]}>
             <Icon name="qr" color={c.onVolt} />
@@ -74,7 +85,7 @@ export default function HomeScreen() {
             <T size={17} w={700}>Lịch của tôi</T>
             <T size={13} w={600} color={c.brand}>Xem tất cả</T>
           </View>
-          {MY_SCHEDULE.map((s) => {
+          {schedule.map((s) => {
             const bg = s.tone === 'brand' ? c.brandTint : c.clayTint;
             const fg = s.tone === 'brand' ? c.brandInk : c.clayInk;
             return (
@@ -100,7 +111,7 @@ export default function HomeScreen() {
         <View style={{ gap: 10 }}>
           <T size={17} w={700}>Lớp học tối nay</T>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10 }}>
-            {CLASSES_TONIGHT.map((k) => (
+            {classes.map((k) => (
               <Card key={k.id} style={{ width: 160 }}>
                 <Num size={20} color={c.clay}>{k.time}</Num>
                 <T w={600} style={{ marginTop: 2 }}>{k.name}</T>
