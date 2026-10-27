@@ -1,15 +1,17 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Line, Rect } from 'react-native-svg';
 import { Icon } from '../components/Icon';
 import { Label, Num, PrimaryButton, ScreenHeader, T } from '../components/ui';
-import { COURTS, DOW_LONG, HOLD_SECONDS, MEMBER_DISCOUNT, PAY_METHODS, RACKET_RENT, TODAY } from '../data/mock';
+import { DOW_LONG, HOLD_SECONDS, MEMBER_DISCOUNT, RACKET_RENT, TODAY } from '../constants';
+import type { PayTone } from '../types/domain';
+import { useCourts, useCreateBooking, usePayMethods } from '../hooks';
 import { hh, vnd } from '../lib/format';
 import { radius, useColors, type Colors } from '../theme/tokens';
 
-function toneColors(c: Colors, tone: (typeof PAY_METHODS)[number]['tone']) {
+function toneColors(c: Colors, tone: PayTone) {
   switch (tone) {
     case 'info': return { bg: c.infoTint, fg: c.info };
     case 'clay': return { bg: c.clayTint, fg: c.clayInk };
@@ -21,10 +23,14 @@ function toneColors(c: Colors, tone: (typeof PAY_METHODS)[number]['tone']) {
 export default function CheckoutScreen() {
   const c = useColors();
   const params = useLocalSearchParams<{ courtId?: string; day?: string; hour?: string }>();
-  const court = COURTS.find((x) => x.id === params.courtId) ?? COURTS[1];
   const day = Number(params.day ?? 0) || 0;
   const hour = Number(params.hour ?? 19) || 19;
   const dayLabel = `${DOW_LONG[day]} ${TODAY + day}/10`;
+
+  const { data: courts = [] } = useCourts();
+  const { data: payMethods = [] } = usePayMethods();
+  const { mutate: submitBooking, isPending } = useCreateBooking();
+  const court = courts.find((x) => x.id === params.courtId) ?? courts[0];
 
   const [left, setLeft] = useState(HOLD_SECONDS);
   const [racket, setRacket] = useState(false);
@@ -36,6 +42,14 @@ export default function CheckoutScreen() {
     const t = setInterval(() => setLeft((s) => Math.max(0, s - 1)), 1000);
     return () => clearInterval(t);
   }, [paidCode]);
+
+  if (!court || !payMethods.length) {
+    return (
+      <SafeAreaView style={[styles.center, { backgroundColor: c.surface }]}>
+        <ActivityIndicator color={c.brand} />
+      </SafeAreaView>
+    );
+  }
 
   const discount = Math.round(court.price * MEMBER_DISCOUNT);
   const total = court.price - discount + (racket ? RACKET_RENT : 0);
@@ -124,7 +138,7 @@ export default function CheckoutScreen() {
         <View accessibilityRole="radiogroup" accessibilityLabel="Phương thức thanh toán">
           <T w={700} style={{ marginBottom: 10 }}>Phương thức thanh toán</T>
           <View style={[styles.pmList, { backgroundColor: c.surfaceRaised, borderColor: c.line }]}>
-            {PAY_METHODS.map((m, i) => {
+            {payMethods.map((m, i) => {
               const on = method === m.id;
               const tone = toneColors(c, m.tone);
               return (
@@ -133,7 +147,7 @@ export default function CheckoutScreen() {
                   accessibilityRole="radio"
                   accessibilityState={{ checked: on }}
                   onPress={() => setMethod(m.id)}
-                  style={[styles.pm, i < PAY_METHODS.length - 1 && { borderBottomWidth: 1, borderBottomColor: c.lineSoft }]}
+                  style={[styles.pm, i < payMethods.length - 1 && { borderBottomWidth: 1, borderBottomColor: c.lineSoft }]}
                 >
                   <View style={[styles.radio, { borderColor: on ? c.brand : c.lineStrong, borderWidth: on ? 6 : 2 }]} />
                   <View style={[styles.logo, { backgroundColor: tone.bg }]}>
@@ -157,9 +171,14 @@ export default function CheckoutScreen() {
       <View style={[styles.footer, { backgroundColor: c.surfaceRaised, borderTopColor: c.line }]}>
         <PrimaryButton
           style={{ height: 52 }}
-          disabled={expired}
-          label={expired ? 'Hết thời gian giữ chỗ' : isDesk ? `Giữ chỗ · cọc ${vnd(Math.round(total / 2))}` : `Thanh toán ${vnd(total)}`}
-          onPress={() => setPaidCode('ĐS-' + String(7000 + Math.floor(Math.random() * 999)))}
+          disabled={expired || isPending}
+          label={expired ? 'Hết thời gian giữ chỗ' : isPending ? 'Đang xử lý…' : isDesk ? `Giữ chỗ · cọc ${vnd(Math.round(total / 2))}` : `Thanh toán ${vnd(total)}`}
+          onPress={() =>
+            submitBooking(
+              { courtId: court.id, dayIndex: day, hour, racket, method },
+              { onSuccess: (b) => setPaidCode(b.code) },
+            )
+          }
         />
       </View>
     </SafeAreaView>

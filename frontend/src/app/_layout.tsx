@@ -9,7 +9,13 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useColors } from '../theme/tokens';
+
+// Tạo một lần cho cả vòng đời app.
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { staleTime: 60_000, retry: 1 } },
+});
 
 export default function RootLayout() {
   const c = useColors();
@@ -26,13 +32,15 @@ export default function RootLayout() {
   if (!loaded && !error) return null;
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="auto" />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.surface } }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="dat-san" />
-        <Stack.Screen name="thanh-toan" />
-      </Stack>
-    </SafeAreaProvider>
+    <QueryClientProvider client={queryClient}>
+      <SafeAreaProvider>
+        <StatusBar style="auto" />
+        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.surface } }}>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="dat-san" />
+          <Stack.Screen name="thanh-toan" />
+        </Stack>
+      </SafeAreaProvider>
+    </QueryClientProvider>
   );
 }

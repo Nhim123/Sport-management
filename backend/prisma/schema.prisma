@@ -1,0 +1,76 @@
+// Prisma schema cho Arena. Dev dùng SQLite; đổi provider + DATABASE_URL để sang PostgreSQL.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Court {
+  id       String    @id
+  name     String
+  kind     String
+  sport    String // 'cl' | 'pb' | 'tn' | 'bd'
+  price    Int // ₫ / giờ
+  bookings Booking[]
+}
+
+model Booking {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  court     Court    @relation(fields: [courtId], references: [id])
+  courtId   String
+  dayIndex  Int // 0 = hôm nay
+  hour      Int
+  racket    Boolean  @default(false)
+  method    String   @default("qr")
+  total     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@unique([courtId, dayIndex, hour])
+  @@index([courtId, dayIndex])
+}
+
+model ClassSession {
+  id   String  @id
+  time String
+  name String
+  sub  String
+  full Boolean @default(false)
+}
+
+model PayMethod {
+  id    String  @id
+  logo  String
+  title String
+  sub   String  @default("")
+  tone  String // 'info' | 'clay' | 'brand' | 'neutral'
+  warn  Boolean @default(false)
+  sort  Int     @default(0)
+}
+
+model Member {
+  id        String         @id @default(cuid())
+  firstName String
+  plan      String
+  daysLeft  Int
+  until     String
+  ptLeft    Int
+  usedPct   Int
+  schedule  ScheduleItem[]
+}
+
+model ScheduleItem {
+  id       String  @id
+  member   Member  @relation(fields: [memberId], references: [id])
+  memberId String
+  tag      String
+  time     String
+  title    String
+  sub      String
+  tone     String // 'brand' | 'clay'
+  upcoming Boolean @default(false)
+  sort     Int     @default(0)
+}
