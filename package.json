@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "mobile": "npm --prefix mobile start"
+    "mobile": "npm --prefix frontend start"
   },
   "dependencies": {
     "react": "18.3.1",
