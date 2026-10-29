@@ -1,14 +1,14 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
-import { courtLive, isFree, NOW_HOUR } from '../../../api/admin.api';
-import { Badge, Banner, Bar, Btn, Chip, ChipRow, LIVE, Screen, SportBadge } from '../../../components/kit';
-import { Card, T } from '../../../components/ui';
-import { useCreateDayBooking, useDayBookings, useRemoveBooking, useUpdateBooking } from '../../../hooks/useAdmin';
-import { useCourts } from '../../../hooks/useCourts';
-import { hh } from '../../../lib/format';
-import { useColors } from '../../../theme/tokens';
-import type { CourtLiveKind } from '../../../types/admin';
+import { courtLive, isFree, NOW_HOUR } from '../../api/admin.api';
+import { Badge, Banner, Bar, Btn, Chip, ChipRow, LIVE, Screen, SportBadge } from '../../components/kit';
+import { Card, T } from '../../components/ui';
+import { useCreateDayBooking, useDayBookings, useRemoveBooking, useUpdateBooking } from '../../hooks/useAdmin';
+import { useCourts } from '../../hooks/useCourts';
+import { hh } from '../../lib/format';
+import { useColors } from '../../theme/tokens';
+import type { CourtLiveKind } from '../../types/admin';
 
 type Group = 'all' | 'busy' | 'free' | 'pending' | 'blocked';
 const GROUP_OF: Record<CourtLiveKind, Exclude<Group, 'all'>> = { inUse: 'busy', class: 'busy', soon: 'free', free: 'free', pending: 'pending', blocked: 'blocked' };
@@ -37,7 +37,7 @@ export default function AdminCourtStatus() {
   const count = (g: Group) => (g === 'all' ? all.length : all.filter(({ l }) => GROUP_OF[l.kind] === g).length);
 
   return (
-    <Screen title="Trạng thái sân" sub="Chủ nhật 18/10 · 19:00">
+    <Screen title="Trạng thái sân" sub="Chủ nhật 18/10 · 19:00" back>
       <ChipRow>
         {GROUPS.map((g) => (
           <Chip key={g.id} label={g.label} count={count(g.id)} on={group === g.id} onPress={() => setGroup(g.id)} />

@@ -36,7 +36,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
       <SafeAreaProvider>
-        <StatusBar style="auto" />
+        <StatusBar style="dark" />
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: c.surface } }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="dang-ky" />

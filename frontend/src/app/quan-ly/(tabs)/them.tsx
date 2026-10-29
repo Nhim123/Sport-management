@@ -8,6 +8,7 @@ import { useAuth } from '../../../store/auth';
 import { radius, useColors } from '../../../theme/tokens';
 
 const ITEMS: { label: string; sub: string; icon: IconName; href: Href }[] = [
+  { label: 'Trạng thái sân', sub: 'Sân đang dùng, check-in, thu cọc, khóa sân', icon: 'activity', href: '/quan-ly/trang-thai' },
   { label: 'Giải đấu', sub: 'Danh sách, cặp đấu, mở/đóng đăng ký', icon: 'trophy', href: '/quan-ly/giai-dau' as Href },
   { label: 'Gói tập', sub: 'Thống kê từng gói, gói theo yêu cầu', icon: 'tag', href: '/quan-ly/goi-tap' },
   { label: 'Nhân viên', sub: 'Ca làm hôm nay, danh bạ', icon: 'idcard', href: '/quan-ly/nhan-vien' },

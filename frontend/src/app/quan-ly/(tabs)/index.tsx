@@ -12,7 +12,7 @@ import { radius, useColors } from '../../../theme/tokens';
 const ACTIONS: { label: string; icon: IconName; href: Href }[] = [
   { label: 'Đặt sân', icon: 'calendar', href: '/quan-ly/lich-san' },
   { label: 'Trạng thái sân', icon: 'activity', href: '/quan-ly/trang-thai' },
-  { label: 'Check-in', icon: 'qr', href: '/quan-ly/hoi-vien' },
+  { label: 'Giải đấu', icon: 'trophy', href: '/quan-ly/giai-dau' as Href },
   { label: 'Báo cáo', icon: 'chart', href: '/quan-ly/bao-cao' },
 ];
 
@@ -82,9 +82,10 @@ export default function AdminHome() {
         {d.classes.map((k, i) => (
           <View key={k.time + k.name} style={[st.liveRow, i > 0 && { borderTopWidth: 1, borderTopColor: c.lineSoft }]}>
             <Num size={20} color={c.clay} style={{ width: 52 }}>{k.time}</Num>
+            <SportBadge sport={k.sport} size={32} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <T w={600}>{k.name}</T>
-              <T size={12} color={c.inkMuted}>{k.coach} · {k.room}</T>
+              <T size={12} color={c.inkMuted}>{k.coach} · {k.room} · {k.present} đã vào</T>
             </View>
             <View style={{ width: 64, gap: 4, alignItems: 'flex-end' }}>
               <Num size={16} w={600}>{k.booked}/{k.cap}</Num>

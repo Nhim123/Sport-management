@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true
     },
@@ -27,7 +27,14 @@
     "plugins": [
       "expo-router",
       "expo-status-bar",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Arena cần camera để quét mã QR check-in vào sân và lớp học.",
+          "recordAudioAndroid": false
+        }
+      ]
     ],
     "scheme": "arena",
     "experiments": {

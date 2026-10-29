@@ -4,7 +4,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, TextInput, View, type Keyboar
 import { router, type Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Tone } from '../types/admin';
-import type { Sport } from '../types/domain';
+import type { Activity } from '../types/domain';
 import { fonts, radius, useColors, type Colors } from '../theme/tokens';
 import { Icon, type IconName } from './Icon';
 import { Num, T } from './ui';
@@ -36,19 +36,25 @@ export function Badge({ label, tone = 'neutral' }: { label: string; tone?: Tone 
   );
 }
 
-const SPORT_ICON: Record<Sport, { icon: IconName; tone: Tone }> = {
-  cl: { icon: 'badminton', tone: 'success' },
-  pb: { icon: 'pickleball', tone: 'info' },
-  tn: { icon: 'tennis', tone: 'volt' },
-  bd: { icon: 'football', tone: 'class' },
+/** Logo & tên từng môn */
+export const SPORT_ICON: Record<Activity, { icon: IconName; tone: Tone; label: string }> = {
+  cl: { icon: 'badminton', tone: 'success', label: 'Cầu lông' },
+  pb: { icon: 'pickleball', tone: 'info', label: 'Pickleball' },
+  tn: { icon: 'tennis', tone: 'volt', label: 'Tennis' },
+  bd: { icon: 'football', tone: 'class', label: 'Bóng đá' },
+  gym: { icon: 'dumbbell', tone: 'neutral', label: 'Gym' },
+  yoga: { icon: 'yoga', tone: 'class', label: 'Yoga' },
+  hiit: { icon: 'hiit', tone: 'danger', label: 'HIIT' },
+  swim: { icon: 'swim', tone: 'info', label: 'Bơi' },
+  pt: { icon: 'whistle', tone: 'warning', label: 'PT cá nhân' },
 };
 
-export function SportBadge({ sport, size = 36 }: { sport: Sport; size?: number }) {
+export function SportBadge({ sport, size = 36 }: { sport: Activity; size?: number }) {
   const c = useColors();
   const { icon, tone } = SPORT_ICON[sport];
   const t = toneColors(c, tone);
   return (
-    <View style={{ width: size, height: size, borderRadius: size * 0.28, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center' }}>
+    <View accessibilityLabel={SPORT_ICON[sport].label} style={{ width: size, height: size, borderRadius: size * 0.28, backgroundColor: t.bg, alignItems: 'center', justifyContent: 'center' }}>
       <Icon name={icon} size={Math.round(size * 0.6)} color={t.fg} />
     </View>
   );
@@ -179,7 +185,7 @@ export function Banner({ text, tone = 'success' }: { text: string; tone?: Tone }
   const t = toneColors(c, tone);
   return (
     <View accessibilityRole="alert" style={[s.banner, { backgroundColor: t.bg }]}>
-      <Icon name={tone === 'success' ? 'check' : 'timer'} size={18} color={t.fg} />
+      <Icon name={tone === 'success' ? 'check' : tone === 'danger' ? 'alert' : 'timer'} size={18} color={t.fg} />
       <T size={13} color={t.fg} style={{ flex: 1 }}>{text}</T>
     </View>
   );

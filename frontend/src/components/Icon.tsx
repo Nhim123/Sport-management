@@ -4,7 +4,8 @@ import type { ColorValue } from 'react-native';
 export type IconName =
   | 'home' | 'calendar' | 'dumbbell' | 'person' | 'coach' | 'renew' | 'bell' | 'qr' | 'chevronLeft' | 'timer' | 'check'
   | 'users' | 'trophy' | 'tag' | 'idcard' | 'chart' | 'activity' | 'search' | 'plus' | 'chevronRight' | 'lock' | 'phone' | 'grid' | 'swap' | 'close'
-  | 'badminton' | 'pickleball' | 'tennis' | 'football';
+  | 'badminton' | 'pickleball' | 'tennis' | 'football' | 'flash' | 'scan' | 'alert'
+  | 'yoga' | 'hiit' | 'swim' | 'whistle';
 
 export function Icon({ name, size = 22, color }: { name: IconName; size?: number; color: ColorValue }) {
   const p = { stroke: color, strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
@@ -83,6 +84,28 @@ export function Icon({ name, size = 22, color }: { name: IconName; size?: number
       {name === 'grid' && <Path {...p} d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" />}
       {name === 'swap' && <Path {...p} d="M7 4 3 8l4 4M3 8h14M17 20l4-4-4-4M21 16H7" />}
       {name === 'close' && <Path {...p} d="M6 6l12 12M18 6 6 18" />}
+      {name === 'yoga' && (
+        <>
+          <Circle {...p} cx={12} cy={4.5} r={2} />
+          <Path {...p} d="M12 7.5v5M4.5 9.5c2.5 1.6 4.8 2.3 7.5 2.3s5-.7 7.5-2.3M6 19c2-2.6 4-3.8 6-3.8s4 1.2 6 3.8M3.5 19h17" />
+        </>
+      )}
+      {name === 'hiit' && <Path {...p} d="M12 2.5c.8 3 5.5 5.2 5.5 10.5a5.5 5.5 0 0 1-11 0c0-2.4 1.2-4 2.4-5 0 2 .9 3.3 2.1 3.3 0-3.2-.9-5.6 1-8.8z" />}
+      {name === 'swim' && (
+        <>
+          <Circle {...p} cx={17.5} cy={6.5} r={2} />
+          <Path {...p} d="M3 13.5 8 10l3.5 2.5L15 10M2 17.5c1.7 0 1.7-1.2 3.3-1.2s1.7 1.2 3.4 1.2 1.7-1.2 3.3-1.2 1.7 1.2 3.4 1.2 1.6-1.2 3.3-1.2 1.6 1.2 3.3 1.2M2 21c1.7 0 1.7-1.2 3.3-1.2S7 21 8.7 21s1.7-1.2 3.3-1.2 1.7 1.2 3.4 1.2 1.6-1.2 3.3-1.2S20.3 21 22 21" />
+        </>
+      )}
+      {name === 'whistle' && (
+        <>
+          <Circle {...p} cx={9} cy={14} r={5.5} />
+          <Path {...p} d="M12.5 9.8 21 6v4.5l-5.6 2.4M9 14h.01M5 4l1.5 2M9 3v2.5M13 4l-1.5 2" />
+        </>
+      )}
+      {name === 'flash' && <Path {...p} d="M13 2 4 14h7l-1 8 9-12h-7z" />}
+      {name === 'scan' && <Path {...p} d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10" />}
+      {name === 'alert' && <Path {...p} d="M12 3 2 20h20L12 3zM12 10v4M12 17.5v.01" />}
       {name === 'badminton' && (
         <>
           <Circle {...p} cx={12} cy={18.5} r={2.5} />

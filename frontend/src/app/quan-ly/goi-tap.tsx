@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View } from 'react-native';
-import { Badge, Screen, Segmented, StatTile } from '../../components/kit';
+import { Badge, Screen, Segmented, SportBadge, StatTile } from '../../components/kit';
 import { Card, Num, T } from '../../components/ui';
 import { usePlans } from '../../hooks/useAdmin';
 import { vnd } from '../../lib/format';
@@ -34,7 +34,8 @@ export default function AdminPlans() {
         const max = Math.max(1, ...p.sales);
         return (
           <Card key={p.id} style={{ gap: 10 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+              <SportBadge sport={p.sport} size={40} />
               <View style={{ flex: 1 }}>
                 <T w={700}>{p.name}</T>
                 <T size={12} color={c.inkMuted}>{p.custom ? `Riêng: ${p.custom}` : p.template} · {p.months} tháng</T>

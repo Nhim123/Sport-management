@@ -1,5 +1,5 @@
 // Kiểu dữ liệu cho chế độ quản lý (nhân viên) – khớp với website quản trị.
-import type { Sport } from './domain';
+import type { Activity, Sport } from './domain';
 
 export type Tone = 'success' | 'warning' | 'danger' | 'class' | 'info' | 'neutral' | 'volt';
 
@@ -14,6 +14,7 @@ export interface AdminBooking {
   label: string;
   sub?: string;
   checkedIn?: boolean;
+  checkedInAt?: string; // "19:05"
 }
 
 export type CourtLiveKind = 'inUse' | 'class' | 'pending' | 'blocked' | 'soon' | 'free';
@@ -65,12 +66,43 @@ export interface Kpi {
 }
 
 export interface ClassToday {
+  id: string;
+  sport: Activity;
   time: string;
+  mins: number; // thời lượng
   name: string;
   coach: string;
   room: string;
   booked: number;
   cap: number;
+  present: number; // đã vào lớp
+  roster: string[]; // mã hội viên đã đăng ký (có trong dữ liệu mẫu)
+  attended: string[]; // mã hội viên đã check-in vào lớp
+}
+
+// ---------- Quét QR check-in ----------
+
+/** Kết luận khi kiểm tra một mã: ok = được phép xác nhận */
+export interface Verdict {
+  ok: boolean;
+  tone: 'success' | 'warning' | 'danger';
+  title: string;
+  notes: string[];
+}
+
+export type ScanResult =
+  | { kind: 'booking'; code: string; booking: AdminBooking; courtName: string; sport: Sport; verdict: Verdict }
+  | { kind: 'class'; code: string; cls: ClassToday; member: AdminMember; enrolled: boolean; verdict: Verdict }
+  | { kind: 'member'; code: string; member: AdminMember; options: { cls: ClassToday; enrolled: boolean; verdict: Verdict }[]; verdict: Verdict }
+  | { kind: 'invalid'; code: string; verdict: Verdict };
+
+export interface ScanLogEntry {
+  id: string;
+  at: string;
+  kind: 'booking' | 'class';
+  sport: Activity;
+  title: string; // tên khách / hội viên
+  sub: string; // sân · giờ hoặc lớp · giờ
 }
 
 export interface Dashboard {
@@ -105,6 +137,7 @@ export interface Tournament {
 
 export interface PlanStat {
   id: string;
+  sport: Activity;
   name: string;
   template: string;
   months: number;

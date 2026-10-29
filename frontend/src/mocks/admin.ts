@@ -26,6 +26,7 @@ const B = (courtId: string, start: number, state: AdminBooking['state'], label: 
   label,
   sub,
   checkedIn: state === 'booked' && start < NOW_HOUR ? true : undefined,
+  checkedInAt: state === 'booked' && start < NOW_HOUR ? `${start}:0${seq % 6}` : undefined,
 });
 
 export const BOOKINGS: AdminBooking[] = [
@@ -46,6 +47,7 @@ export const BOOKINGS: AdminBooking[] = [
   B('tn', 21, 'blocked', 'Bảo trì đèn', undefined, 2),
   B('bd', 18, 'booked', 'FC Văn Phòng', undefined, 2),
   B('bd', 20, 'booked', 'Team Bình', undefined, 2),
+  B('cl2', 19, 'pending', 'Chị Hạnh', 'Chưa cọc'),
 ];
 
 const heat = (seed: number) => Array.from({ length: 28 }, (_, i) => ((i * 7 + seed * 13) % 5 < 3 ? 1 : 0));
@@ -83,11 +85,11 @@ export const DASHBOARD: Dashboard = {
     { label: 'Sắp hết hạn', value: '27', hint: 'trong 14 ngày' },
   ],
   classes: [
-    { time: '06:00', name: 'Yoga buổi sáng', coach: 'HLV Mai', room: 'Phòng Yoga', booked: 18, cap: 20 },
-    { time: '17:30', name: 'Hatha Yoga', coach: 'HLV Mai', room: 'Phòng Yoga', booked: 14, cap: 20 },
-    { time: '18:00', name: 'Tennis cơ bản', coach: 'HLV Dũng', room: 'Sân tennis', booked: 6, cap: 8 },
-    { time: '19:00', name: 'Vinyasa Flow', coach: 'HLV Thảo', room: 'Phòng Yoga', booked: 20, cap: 20 },
-    { time: '19:30', name: 'HIIT 45 phút', coach: 'HLV Khoa', room: 'Khu functional', booked: 11, cap: 16 },
+    { id: 'c0600', sport: 'yoga', time: '06:00', mins: 60, name: 'Yoga buổi sáng', coach: 'HLV Mai', room: 'Phòng Yoga', booked: 18, cap: 20, present: 16, roster: ['AR-00512'], attended: ['AR-00512'] },
+    { id: 'c1730', sport: 'yoga', time: '17:30', mins: 60, name: 'Hatha Yoga', coach: 'HLV Mai', room: 'Phòng Yoga', booked: 14, cap: 20, present: 13, roster: ['AR-00633'], attended: ['AR-00633'] },
+    { id: 'c1800', sport: 'tn', time: '18:00', mins: 90, name: 'Tennis cơ bản', coach: 'HLV Dũng', room: 'Sân tennis', booked: 6, cap: 8, present: 5, roster: ['AR-00388'], attended: [] },
+    { id: 'c1900', sport: 'yoga', time: '19:00', mins: 60, name: 'Vinyasa Flow', coach: 'HLV Thảo', room: 'Phòng Yoga', booked: 20, cap: 20, present: 9, roster: ['AR-00512', 'AR-00197', 'AR-00633'], attended: [] },
+    { id: 'c1930', sport: 'hiit', time: '19:30', mins: 45, name: 'HIIT 45 phút', coach: 'HLV Khoa', room: 'Khu functional', booked: 11, cap: 16, present: 0, roster: ['AR-00421', 'AR-00266', 'AR-00640'], attended: [] },
   ],
   renew: ['AR-00388', 'AR-00512', 'AR-00197', 'AR-00604'],
 };
@@ -116,15 +118,15 @@ export const TOURNAMENTS: Tournament[] = [
 ];
 
 export const PLANS: PlanStat[] = [
-  { id: 'p-gym-1', name: 'Gym 1 tháng', template: 'Gym tiêu chuẩn', months: 1, price: 650000, tags: ['Phòng gym'], sales: [38, 42, 51, 47, 40, 44], active: 52, renewal: 0.41, expiring: 18 },
-  { id: 'p-gym-6', name: 'Gym 6 tháng', template: 'Gym tiêu chuẩn', months: 6, price: 3600000, tags: ['Phòng gym', 'Bảo lưu 30 ngày'], sales: [14, 12, 16, 15, 13, 17], active: 96, renewal: 0.62, expiring: 9 },
-  { id: 'p-gym-12', name: 'Gym 12 tháng', template: 'Gym tiêu chuẩn', months: 12, price: 6600000, tags: ['Phòng gym', 'Bảo lưu 60 ngày'], sales: [9, 8, 11, 10, 12, 14], active: 188, renewal: 0.74, expiring: 6 },
-  { id: 'p-yoga-3', name: 'Yoga 3 tháng', template: 'Yoga & lớp nhóm', months: 3, price: 2400000, tags: ['Lớp nhóm'], sales: [11, 13, 15, 12, 10, 12], active: 64, renewal: 0.58, expiring: 7 },
-  { id: 'p-pt-12', name: 'PT 12 buổi', template: 'PT cá nhân', months: 3, price: 5400000, tags: ['PT 12 buổi'], sales: [6, 7, 5, 8, 9, 7], active: 21, renewal: 0.49, expiring: 4 },
-  { id: 'p-pt-24', name: 'PT 24 buổi', template: 'PT cá nhân', months: 6, price: 9600000, tags: ['PT 24 buổi'], sales: [3, 4, 4, 5, 4, 6], active: 17, renewal: 0.66, expiring: 2 },
-  { id: 'p-combo-6', name: 'Gym + Bơi 6 tháng', template: 'Combo Gym + Bơi', months: 6, price: 5400000, tags: ['Phòng gym', 'Hồ bơi', 'Khăn & nước'], sales: [5, 6, 9, 10, 6, 7], active: 35, renewal: 0.55, expiring: 3 },
-  { id: 'p-offpeak-3', name: 'Gym giờ thấp điểm 3 tháng', template: 'Giờ thấp điểm', months: 3, price: 1350000, tags: ['Phòng gym', 'Giờ thấp điểm'], sales: [7, 9, 8, 6, 8, 10], active: 29, renewal: 0.47, expiring: 5 },
-  { id: 'p-custom-ma', name: 'Gym 12 tháng + PT 24 buổi (riêng)', template: 'Gói riêng', months: 12, price: 16200000, tags: ['Phòng gym', 'PT 24 buổi', 'Tủ đồ riêng'], custom: 'Nguyễn Minh Anh', sales: [0, 0, 0, 0, 0, 0], active: 1, renewal: null, expiring: 0 },
+  { id: 'p-gym-1', sport: 'gym', name: 'Gym 1 tháng', template: 'Gym tiêu chuẩn', months: 1, price: 650000, tags: ['Phòng gym'], sales: [38, 42, 51, 47, 40, 44], active: 52, renewal: 0.41, expiring: 18 },
+  { id: 'p-gym-6', sport: 'gym', name: 'Gym 6 tháng', template: 'Gym tiêu chuẩn', months: 6, price: 3600000, tags: ['Phòng gym', 'Bảo lưu 30 ngày'], sales: [14, 12, 16, 15, 13, 17], active: 96, renewal: 0.62, expiring: 9 },
+  { id: 'p-gym-12', sport: 'gym', name: 'Gym 12 tháng', template: 'Gym tiêu chuẩn', months: 12, price: 6600000, tags: ['Phòng gym', 'Bảo lưu 60 ngày'], sales: [9, 8, 11, 10, 12, 14], active: 188, renewal: 0.74, expiring: 6 },
+  { id: 'p-yoga-3', sport: 'yoga', name: 'Yoga 3 tháng', template: 'Yoga & lớp nhóm', months: 3, price: 2400000, tags: ['Lớp nhóm'], sales: [11, 13, 15, 12, 10, 12], active: 64, renewal: 0.58, expiring: 7 },
+  { id: 'p-pt-12', sport: 'pt', name: 'PT 12 buổi', template: 'PT cá nhân', months: 3, price: 5400000, tags: ['PT 12 buổi'], sales: [6, 7, 5, 8, 9, 7], active: 21, renewal: 0.49, expiring: 4 },
+  { id: 'p-pt-24', sport: 'pt', name: 'PT 24 buổi', template: 'PT cá nhân', months: 6, price: 9600000, tags: ['PT 24 buổi'], sales: [3, 4, 4, 5, 4, 6], active: 17, renewal: 0.66, expiring: 2 },
+  { id: 'p-combo-6', sport: 'swim', name: 'Gym + Bơi 6 tháng', template: 'Combo Gym + Bơi', months: 6, price: 5400000, tags: ['Phòng gym', 'Hồ bơi', 'Khăn & nước'], sales: [5, 6, 9, 10, 6, 7], active: 35, renewal: 0.55, expiring: 3 },
+  { id: 'p-offpeak-3', sport: 'gym', name: 'Gym giờ thấp điểm 3 tháng', template: 'Giờ thấp điểm', months: 3, price: 1350000, tags: ['Phòng gym', 'Giờ thấp điểm'], sales: [7, 9, 8, 6, 8, 10], active: 29, renewal: 0.47, expiring: 5 },
+  { id: 'p-custom-ma', sport: 'gym', name: 'Gym 12 tháng + PT 24 buổi (riêng)', template: 'Gói riêng', months: 12, price: 16200000, tags: ['Phòng gym', 'PT 24 buổi', 'Tủ đồ riêng'], custom: 'Nguyễn Minh Anh', sales: [0, 0, 0, 0, 0, 0], active: 1, renewal: null, expiring: 0 },
 ];
 
 const W = (s: string): Shift[] => s.split(' ').map((x) => (x === '-' ? 'off' : (x as Shift)));

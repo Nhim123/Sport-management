@@ -1,6 +1,4 @@
 // Arena design tokens – cùng nguồn với web (src/styles/tokens.css)
-import { useColorScheme } from 'react-native';
-
 const light = {
   surface: '#f6f5f0',
   surfaceRaised: '#ffffff',
@@ -37,34 +35,6 @@ const light = {
 
 export type Colors = typeof light;
 
-const dark: Colors = {
-  ...light,
-  surface: '#121412',
-  surfaceRaised: '#1b1e1b',
-  surfaceSunken: '#0c0d0c',
-  line: '#2e322e',
-  lineSoft: '#262926',
-  lineStrong: '#6f766f',
-  ink: '#eef0ea',
-  inkMuted: '#a3aaa3',
-  brand: '#4fbf83',
-  brandStrong: '#6fd39c',
-  onBrand: '#0b1a12',
-  brandTint: '#173726',
-  brandWash: '#142a1e',
-  brandInk: '#a9e8c4',
-  clay: '#e8794a',
-  clayTint: '#3a2116',
-  clayInk: '#f5b898',
-  warning: '#f0b440',
-  warningTint: '#3a2c0e',
-  danger: '#f2766b',
-  dangerTint: '#3d1714',
-  info: '#7aa7ec',
-  infoTint: '#15243b',
-  slotBlocked: '#262926',
-  passBg: '#0c0d0c',
-};
 
 /** React Native không tự chọn biến thể theo fontWeight với font tuỳ chỉnh – dùng đúng tên từng biến thể. */
 export const fonts = {
@@ -78,6 +48,7 @@ export const fonts = {
 
 export const radius = { sm: 6, md: 10, lg: 16, xl: 20, pill: 999 };
 
+/** App chỉ dùng giao diện sáng (không đổi theo chế độ tối của máy) */
 export function useColors(): Colors {
-  return useColorScheme() === 'dark' ? dark : light;
+  return light;
 }

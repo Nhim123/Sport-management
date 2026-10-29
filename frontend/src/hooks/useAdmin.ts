@@ -14,6 +14,7 @@ export const ak = {
   plans: ['admin', 'plans'] as const,
   staff: ['admin', 'staff'] as const,
   report: ['admin', 'report'] as const,
+  scanLog: ['admin', 'scanLog'] as const,
 };
 
 export const useDashboard = () => useQuery({ queryKey: ak.dashboard, queryFn: api.getDashboard });
@@ -71,5 +72,34 @@ export function useSetTournamentStatus() {
   return useMutation({
     mutationFn: ({ id, status }: { id: string; status: Tournament['status'] }) => api.setTournamentStatus(id, status),
     onSuccess: () => qc.invalidateQueries({ queryKey: ak.tournaments }),
+  });
+}
+
+// ---------- Quét QR check-in ----------
+export const useScanLog = () => useQuery({ queryKey: ak.scanLog, queryFn: api.getScanLog });
+
+/** Đọc & kiểm tra mã – là thao tác, không lưu cache */
+export const useResolveQr = () => useMutation({ mutationFn: (raw: string) => api.resolveQr(raw) });
+
+export function useConfirmCourtEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, collected }: { id: string; collected?: boolean }) => api.confirmCourtEntry(id, collected),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ak.bookings });
+      qc.invalidateQueries({ queryKey: ak.scanLog });
+    },
+  });
+}
+
+export function useConfirmClassEntry() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ classId, memberCode }: { classId: string; memberCode: string }) => api.confirmClassEntry(classId, memberCode),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ak.dashboard });
+      qc.invalidateQueries({ queryKey: ak.members });
+      qc.invalidateQueries({ queryKey: ak.scanLog });
+    },
   });
 }
