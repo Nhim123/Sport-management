@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { CURRENT_STAFF } from '../data/mock';
-import { currentTheme, setTheme, type Theme } from '../lib/theme';
 import { Icon, type IconName } from './Icon';
 
 const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
@@ -17,24 +15,6 @@ const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: '/bao-cao', label: 'Báo cáo', icon: 'chart' },
   { to: '/cai-dat', label: 'Cài đặt', icon: 'settings' },
 ];
-
-export function ThemeToggle() {
-  const [theme, setT] = useState<Theme>(currentTheme);
-  const next: Theme = theme === 'dark' ? 'light' : 'dark';
-  return (
-    <button
-      type="button"
-      className="theme-btn"
-      aria-label={next === 'dark' ? 'Chuyển sang giao diện tối' : 'Chuyển sang giao diện sáng'}
-      onClick={() => {
-        setTheme(next);
-        setT(next);
-      }}
-    >
-      <Icon name={theme === 'dark' ? 'sun' : 'moon'} />
-    </button>
-  );
-}
 
 export default function AdminLayout() {
   return (
@@ -58,7 +38,6 @@ export default function AdminLayout() {
             <div style={{ fontSize: 14, fontWeight: 600, lineHeight: '20px' }}>{CURRENT_STAFF.name}</div>
             <div style={{ fontSize: 12, lineHeight: '16px', color: 'var(--ink-muted)' }}>{CURRENT_STAFF.role}</div>
           </div>
-          <ThemeToggle />
         </div>
       </nav>
       <main className="admin-main">

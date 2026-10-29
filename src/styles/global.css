@@ -182,11 +182,6 @@ button.s-free:hover { background: var(--brand-tint); color: var(--brand-ink); }
   margin-top: auto; padding: 16px 12px 0; border-top: 1px solid var(--line);
   display: flex; align-items: center; gap: 10px;
 }
-.theme-btn {
-  margin-left: auto; width: 36px; height: 36px; border-radius: var(--radius-md);
-  border: 1px solid var(--line); background: var(--surface-raised); color: var(--ink);
-  display: grid; place-items: center; cursor: pointer;
-}
 .admin-main { flex: 1; min-width: 0; padding: 32px; display: flex; flex-direction: column; gap: 24px; }
 
 .page-head { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
