@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { Icon } from '../../../components/Icon';
 import { Avatar, Badge, Chip, ChipRow, ListRow, Screen } from '../../../components/kit';
+import { NoticeBell } from '../../../components/NoticeBell';
 import { T } from '../../../components/ui';
 import { useMembers } from '../../../hooks/useAdmin';
 import { fonts, radius, useColors } from '../../../theme/tokens';
@@ -32,7 +33,7 @@ export default function AdminMembers() {
   const inside = members.filter((m) => m.inside).length;
 
   return (
-    <Screen title="Hội viên" sub={`${members.length} hội viên · ${inside} đang ở phòng tập`}>
+    <Screen title="Hội viên" sub={`${members.length} hội viên · ${inside} đang ở phòng tập`} right={<NoticeBell />}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, height: 46, borderRadius: radius.md, borderWidth: 1, borderColor: c.lineStrong, backgroundColor: c.surfaceRaised }}>
         <Icon name="search" size={18} color={c.inkMuted} />
         <TextInput

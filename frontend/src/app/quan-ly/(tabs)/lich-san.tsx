@@ -1,9 +1,10 @@
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { CLOSE_HOUR, isFree, NOW_HOUR, OPEN_HOUR } from '../../../api/admin.api';
 import { Icon } from '../../../components/Icon';
 import { Badge, Banner, Btn, Chip, ChipRow, Field, Screen, Segmented, Sheet, SportBadge } from '../../../components/kit';
+import { NoticeBell } from '../../../components/NoticeBell';
 import { Num, T } from '../../../components/ui';
 import { MEMBER_DISCOUNT } from '../../../constants';
 import { useCreateDayBooking, useDayBookings, useMembers } from '../../../hooks/useAdmin';
@@ -71,7 +72,7 @@ export default function AdminSchedule() {
   };
 
   return (
-    <Screen title="Lịch sân" sub="Chủ nhật, 18/10 · chạm ô trống để đặt">
+    <Screen title="Lịch sân" sub="Chủ nhật, 18/10 · chạm ô trống để đặt" right={<NoticeBell />}>
       <ChipRow>
         {courts.map((x) => (
           <Chip key={x.id} label={x.name} on={x.id === court.id} onPress={() => setCourtId(x.id)} left={<SportBadge sport={x.sport} size={22} />} />
@@ -143,6 +144,18 @@ export default function AdminSchedule() {
               <Btn label="Giữ chỗ, chờ cọc" kind="secondary" disabled={!fits || create.isPending} onPress={() => submit(true)} style={{ flex: 1 }} />
               <Btn label="Xác nhận" disabled={!fits || create.isPending} onPress={() => submit(false)} style={{ flex: 1 }} />
             </View>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => {
+                const start = String(hour);
+                setHour(null);
+                router.push({ pathname: '/quan-ly/dinh-ky/tao', params: { court: court.id, start, day: '6' } });
+              }}
+              style={[st.who, { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: c.line }]}
+            >
+              <Icon name="renew" size={18} color={c.brand} />
+              <T size={13} style={{ flex: 1 }}>CLB thuê cố định hàng tuần? <T size={13} w={700} color={c.brandInk}>Đặt định kỳ</T></T>
+            </Pressable>
           </>
         )}
       </Sheet>

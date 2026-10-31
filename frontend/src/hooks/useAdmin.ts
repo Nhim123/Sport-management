@@ -1,7 +1,7 @@
 // Hook cho chế độ quản lý – mọi màn quản lý lấy dữ liệu qua đây.
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as api from '../api/admin.api';
-import type { AdminBooking, Tournament } from '../types/admin';
+import type { AdminBooking, Shift, Tournament } from '../types/admin';
 
 export const ak = {
   all: ['admin'] as const,
@@ -15,6 +15,8 @@ export const ak = {
   staff: ['admin', 'staff'] as const,
   report: ['admin', 'report'] as const,
   scanLog: ['admin', 'scanLog'] as const,
+  notices: ['admin', 'notices'] as const,
+  recurring: ['admin', 'recurring'] as const,
 };
 
 export const useDashboard = () => useQuery({ queryKey: ak.dashboard, queryFn: api.getDashboard });
@@ -67,6 +69,30 @@ export function useRenewMember() {
   });
 }
 
+export function useCreatePlan() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (p: api.NewPlan) => api.createPlan(p),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ak.plans }),
+  });
+}
+
+export function useSetShift() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ staffId, day, shift }: { staffId: string; day: number; shift: Shift }) => api.setShift(staffId, day, shift),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ak.staff }),
+  });
+}
+
+export function useCreateTournament() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (t: Omit<Tournament, 'id' | 'entrants'>) => api.createTournament(t),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ak.tournaments }),
+  });
+}
+
 export function useSetTournamentStatus() {
   const qc = useQueryClient();
   return useMutation({
@@ -103,3 +129,41 @@ export function useConfirmClassEntry() {
     },
   });
 }
+
+// ---------- Thông báo cần xác nhận ----------
+export const useNotices = () => useQuery({ queryKey: ak.notices, queryFn: api.getNotices });
+
+function useNoticeMutation<V>(fn: (v: V) => Promise<boolean>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSettled: () => {
+      qc.invalidateQueries({ queryKey: ak.notices });
+      qc.invalidateQueries({ queryKey: ak.bookings });
+      qc.invalidateQueries({ queryKey: ak.members });
+    },
+  });
+}
+
+export const useConfirmNotice = () =>
+  useNoticeMutation(({ id, by, placement }: { id: string; by: string; placement?: { courtId: string; start: number } }) => api.confirmNotice(id, by, placement));
+export const useRejectNotice = () => useNoticeMutation(({ id, by, reason }: { id: string; by: string; reason: string }) => api.rejectNotice(id, by, reason));
+
+// ---------- Đặt sân định kỳ ----------
+export const useRecurring = () => useQuery({ queryKey: ak.recurring, queryFn: api.getRecurring });
+
+function useRecurringMutation<V, R>(fn: (v: V) => Promise<R>) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: fn,
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ak.recurring });
+      qc.invalidateQueries({ queryKey: ak.bookings });
+    },
+  });
+}
+
+export const useCreateRecurring = () => useRecurringMutation(({ input, skipConflicts }: { input: api.NewRecurring; skipConflicts?: boolean }) => api.createRecurring(input, skipConflicts));
+export const useSetRecurringStatus = () => useRecurringMutation(({ id, status }: { id: string; status: 'active' | 'paused' | 'ended' }) => api.setRecurringStatus(id, status));
+export const useExtendRecurring = () => useRecurringMutation(({ id, weeks }: { id: string; weeks: number }) => api.extendRecurring(id, weeks));
+export const useToggleSkip = () => useRecurringMutation(({ id, date }: { id: string; date: string }) => api.toggleSkip(id, date));

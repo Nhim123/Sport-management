@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native';
 import { courtLive, NOW_HOUR } from '../../../api/admin.api';
 import { Icon, type IconName } from '../../../components/Icon';
 import { Avatar, Badge, Bar, LIVE, ListRow, Screen, SectionHead, SportBadge, StatTile } from '../../../components/kit';
+import { NoticeBell } from '../../../components/NoticeBell';
 import { Card, Num, T } from '../../../components/ui';
 import { useDashboard, useDayBookings, useMembers } from '../../../hooks/useAdmin';
 import { useCourts } from '../../../hooks/useCourts';
@@ -36,7 +37,7 @@ export default function AdminHome() {
   const renew = d.renew.map((code) => members.find((m) => m.code === code)).filter((m) => !!m);
 
   return (
-    <Screen title={d.dateLabel} sub={`${(user?.name ?? d.staffName)} · ${(user?.roleLabel ?? d.staffRole)} · ${d.shift}`} right={<Avatar name={(user?.name ?? d.staffName)} ring />}>
+    <Screen title={d.dateLabel} sub={`${(user?.name ?? d.staffName)} · ${(user?.roleLabel ?? d.staffRole)} · ${d.shift}`} right={<View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><NoticeBell /><Avatar name={(user?.name ?? d.staffName)} ring /></View>}>
       <View style={st.grid}>
         {d.kpis.map((k, i) => (
           <StatTile

@@ -5,6 +5,7 @@ import { Animated, Easing, Linking, Platform, Pressable, StyleSheet, Vibration, 
 import { bookingPrice, hm, NOW_HOUR, SAMPLE_CODES } from '../../../api/admin.api';
 import { Icon } from '../../../components/Icon';
 import { Avatar, Badge, Banner, Btn, Chip, ChipRow, Field, SectionHead, Screen, Sheet, SportBadge, SPORT_ICON, toneColors } from '../../../components/kit';
+import { NoticeBell } from '../../../components/NoticeBell';
 import { Card, Num, T } from '../../../components/ui';
 import { useConfirmClassEntry, useConfirmCourtEntry, useResolveQr, useScanLog } from '../../../hooks/useAdmin';
 import { vnd } from '../../../lib/format';
@@ -84,7 +85,7 @@ export default function ScanScreen() {
   const scanning = focused && !result && !resolve.isPending;
 
   return (
-    <Screen title="Quét QR" sub="Vé sân · vé lớp · thẻ hội viên">
+    <Screen title="Quét QR" sub="Vé sân · vé lớp · thẻ hội viên" right={<NoticeBell />}>
       {notice && <Banner tone="success" text={notice} />}
 
       <View style={[st.viewport, { backgroundColor: '#0d100e' }]}>

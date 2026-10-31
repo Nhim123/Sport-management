@@ -115,7 +115,7 @@ export interface Dashboard {
   renew: string[]; // mã hội viên
 }
 
-export type Format = 'knockout' | 'roundrobin' | 'groups';
+export type Format = 'knockout' | 'double' | 'roundrobin' | 'groups' | 'swiss';
 
 export interface Tournament {
   id: string;
@@ -133,16 +133,30 @@ export interface Tournament {
   prize: string;
   entrants: string[];
   status: 'draft' | 'open';
+  // Tuỳ chọn thể thức & luật trận (giải tạo mới có đủ)
+  thirdPlace?: boolean;
+  legs?: 1 | 2;
+  advance?: 1 | 2;
+  swissRounds?: number;
+  matchRule?: string;
 }
 
+/** Một thành phần trong gói: phòng gym, giờ sân theo môn, lớp nhóm, PT, bơi */
+export interface PlanPart {
+  kind: 'gym' | 'court' | 'class' | 'pt' | 'swim';
+  sport?: Sport; // môn của sân
+  qty?: number; // giờ sân / buổi lớp mỗi tháng, buổi PT cả gói; trống = không giới hạn
+  offPeak?: boolean; // chỉ dùng giờ thấp điểm
+}
+
+/** Gói tập do câu lạc bộ tự ghép (không theo khuôn cố định) + số liệu bán */
 export interface PlanStat {
   id: string;
-  sport: Activity;
   name: string;
-  template: string;
+  parts: PlanPart[];
   months: number;
   price: number;
-  tags: string[];
+  extras: string[]; // quyền lợi thêm: bảo lưu, khăn & nước, tủ đồ…
   custom?: string; // tên khách nếu là gói riêng
   sales: number[]; // T5 → T10
   active: number;
@@ -179,4 +193,48 @@ export interface MonthReport {
   days: [number, number][];
   productRows: { name: string; unit: string; qty: number; revenue: number; profit: number }[];
   courts: { courtId: string; revenue: number; count: number }[];
+}
+
+// ---------- Thông báo cần xác nhận ----------
+
+export type NoticeKind = 'booking' | 'deposit' | 'renewal' | 'freeze';
+
+export interface Notice {
+  id: string;
+  kind: NoticeKind;
+  sport: Activity;
+  who: string; // khách / hội viên
+  detail: string; // sân · giờ, gói, thời gian bảo lưu
+  at: string; // "18:52"
+  amount?: number;
+  note?: string; // lời nhắn / nội dung chuyển khoản
+  status: 'pending' | 'confirmed' | 'rejected';
+  resolvedAt?: string;
+  resolvedBy?: string;
+  reason?: string;
+  // Tham chiếu để xử lý khi xác nhận
+  booking?: { sport: Sport; courtId?: string; start: number; span: number }; // courtId = sân khách chọn (nếu có)
+  bookingId?: string;
+  memberCode?: string;
+  planIndex?: number;
+}
+
+// ---------- Đặt sân định kỳ (câu lạc bộ / nhóm cố định) ----------
+
+export interface RecurringBooking {
+  id: string;
+  club: string; // tên câu lạc bộ / nhóm
+  contact: string; // người liên hệ · SĐT
+  courtId: string;
+  days: number[]; // thứ trong tuần: 0 = T2 … 6 = CN
+  start: number; // giờ bắt đầu
+  span: number; // số giờ mỗi buổi
+  from: string; // ISO "2026-10-18"
+  to: string;
+  pricePerSession: number;
+  discount: number; // đã gồm giảm theo thời hạn (+ trả trước)
+  pay: 'month' | 'prepaid';
+  status: 'active' | 'paused' | 'ended';
+  skips: string[]; // ngày nghỉ (ISO)
+  paidSessions: number;
 }

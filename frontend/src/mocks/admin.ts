@@ -5,6 +5,8 @@ import type {
   AdminMember,
   Dashboard,
   MonthReport,
+  Notice,
+  RecurringBooking,
   PlanStat,
   Shift,
   StaffMember,
@@ -32,7 +34,7 @@ const B = (courtId: string, start: number, state: AdminBooking['state'], label: 
 export const BOOKINGS: AdminBooking[] = [
   B('cl1', 16, 'booked', 'Bé Na'),
   B('cl1', 17, 'booked', 'Anh Tuấn'),
-  B('cl1', 18, 'booked', 'CLB Phượng Hoàng', undefined, 2),
+  B('cl1', 18, 'booked', 'CLB Phượng Hoàng', 'Định kỳ', 2),
   B('cl1', 21, 'pending', 'Chị Lan', 'Chưa cọc'),
   B('cl2', 18, 'booked', 'Minh Khôi'),
   B('cl2', 21, 'booked', 'Hoàng Nam'),
@@ -40,12 +42,12 @@ export const BOOKINGS: AdminBooking[] = [
   B('pba', 17, 'booked', 'Nhóm Sáu', undefined, 2),
   B('pba', 20, 'booked', 'Thành Đạt'),
   B('pbb', 18, 'pending', 'Anh Vũ', 'Chưa cọc'),
-  B('pbb', 19, 'booked', 'Team Q7', undefined, 2),
+  B('pbb', 19, 'booked', 'Team Q7', 'Định kỳ', 2),
   B('tn', 16, 'class', 'Lớp trẻ em', 'HLV Dũng'),
   B('tn', 17, 'class', 'Lớp cơ bản', 'HLV Dũng', 2),
   B('tn', 19, 'booked', 'Ông Phúc'),
   B('tn', 21, 'blocked', 'Bảo trì đèn', undefined, 2),
-  B('bd', 18, 'booked', 'FC Văn Phòng', undefined, 2),
+  B('bd', 18, 'booked', 'FC Văn Phòng', 'Định kỳ', 2),
   B('bd', 20, 'booked', 'Team Bình', undefined, 2),
   B('cl2', 19, 'pending', 'Chị Hạnh', 'Chưa cọc'),
 ];
@@ -108,25 +110,27 @@ export const TOURNAMENTS: Tournament[] = [
     id: 't-sample-1', name: 'Giải cầu lông Arena mở rộng 2026', sport: 'cl', entry: 'Đôi', format: 'knockout', maxEntrants: 16, groupCount: 4, seeds: 4,
     dates: 'T7 14/11 – CN 15/11/2026', regDeadline: 'T7 07/11/2026', courts: 'Cầu lông 1, Cầu lông 2 · 08:00–20:00', fee: 300000, prize: 'Cúp + 10.000.000₫ cho nhà vô địch',
     entrants: ['Anh Tuấn / Minh Khôi', 'Hoàng Nam / Thành Đạt', 'CLB Phượng Hoàng A', 'Quốc Bảo / Gia Huy', 'Đức Long / Tấn Phát', 'CLB Phượng Hoàng B', 'Hải Nam / Khánh Linh', 'Team Q7', 'Văn Phòng FC', 'Minh Anh / Thu Hà', 'Ngọc Trâm / Bé Na'],
-    status: 'open',
+    status: 'open', thirdPlace: true, matchRule: '2/3 ván 21 điểm',
   },
   {
     id: 't-sample-2', name: 'Pickleball Cup tháng 12', sport: 'pb', entry: 'Đôi', format: 'groups', maxEntrants: 12, groupCount: 4, seeds: 4,
     dates: 'T7 05/12 – CN 06/12/2026', regDeadline: 'T7 28/11/2026', courts: 'Pickleball A, Pickleball B · 07:00–19:00', fee: 250000, prize: '[GIẢI THƯỞNG]',
-    entrants: [], status: 'draft',
+    entrants: [], status: 'draft', advance: 2, thirdPlace: true, matchRule: '2/3 ván 11 điểm',
   },
 ];
 
 export const PLANS: PlanStat[] = [
-  { id: 'p-gym-1', sport: 'gym', name: 'Gym 1 tháng', template: 'Gym tiêu chuẩn', months: 1, price: 650000, tags: ['Phòng gym'], sales: [38, 42, 51, 47, 40, 44], active: 52, renewal: 0.41, expiring: 18 },
-  { id: 'p-gym-6', sport: 'gym', name: 'Gym 6 tháng', template: 'Gym tiêu chuẩn', months: 6, price: 3600000, tags: ['Phòng gym', 'Bảo lưu 30 ngày'], sales: [14, 12, 16, 15, 13, 17], active: 96, renewal: 0.62, expiring: 9 },
-  { id: 'p-gym-12', sport: 'gym', name: 'Gym 12 tháng', template: 'Gym tiêu chuẩn', months: 12, price: 6600000, tags: ['Phòng gym', 'Bảo lưu 60 ngày'], sales: [9, 8, 11, 10, 12, 14], active: 188, renewal: 0.74, expiring: 6 },
-  { id: 'p-yoga-3', sport: 'yoga', name: 'Yoga 3 tháng', template: 'Yoga & lớp nhóm', months: 3, price: 2400000, tags: ['Lớp nhóm'], sales: [11, 13, 15, 12, 10, 12], active: 64, renewal: 0.58, expiring: 7 },
-  { id: 'p-pt-12', sport: 'pt', name: 'PT 12 buổi', template: 'PT cá nhân', months: 3, price: 5400000, tags: ['PT 12 buổi'], sales: [6, 7, 5, 8, 9, 7], active: 21, renewal: 0.49, expiring: 4 },
-  { id: 'p-pt-24', sport: 'pt', name: 'PT 24 buổi', template: 'PT cá nhân', months: 6, price: 9600000, tags: ['PT 24 buổi'], sales: [3, 4, 4, 5, 4, 6], active: 17, renewal: 0.66, expiring: 2 },
-  { id: 'p-combo-6', sport: 'swim', name: 'Gym + Bơi 6 tháng', template: 'Combo Gym + Bơi', months: 6, price: 5400000, tags: ['Phòng gym', 'Hồ bơi', 'Khăn & nước'], sales: [5, 6, 9, 10, 6, 7], active: 35, renewal: 0.55, expiring: 3 },
-  { id: 'p-offpeak-3', sport: 'gym', name: 'Gym giờ thấp điểm 3 tháng', template: 'Giờ thấp điểm', months: 3, price: 1350000, tags: ['Phòng gym', 'Giờ thấp điểm'], sales: [7, 9, 8, 6, 8, 10], active: 29, renewal: 0.47, expiring: 5 },
-  { id: 'p-custom-ma', sport: 'gym', name: 'Gym 12 tháng + PT 24 buổi (riêng)', template: 'Gói riêng', months: 12, price: 16200000, tags: ['Phòng gym', 'PT 24 buổi', 'Tủ đồ riêng'], custom: 'Nguyễn Minh Anh', sales: [0, 0, 0, 0, 0, 0], active: 1, renewal: null, expiring: 0 },
+  { id: 'p-gym-1', name: 'Gym 1 tháng', parts: [{ kind: 'gym' }], months: 1, price: 650000, extras: [], sales: [38, 42, 51, 47, 40, 44], active: 52, renewal: 0.41, expiring: 18 },
+  { id: 'p-gym-6', name: 'Gym 6 tháng', parts: [{ kind: 'gym' }], months: 6, price: 3600000, extras: ['Bảo lưu 30 ngày'], sales: [14, 12, 16, 15, 13, 17], active: 96, renewal: 0.62, expiring: 9 },
+  { id: 'p-gym-12', name: 'Gym 12 tháng', parts: [{ kind: 'gym' }], months: 12, price: 6600000, extras: ['Bảo lưu 60 ngày'], sales: [9, 8, 11, 10, 12, 14], active: 188, renewal: 0.74, expiring: 6 },
+  { id: 'p-gym-cl-3', name: 'Gym + Cầu lông 8h · 3 tháng', parts: [{ kind: 'gym' }, { kind: 'court', sport: 'cl', qty: 8 }], months: 3, price: 4800000, extras: ['Khăn & nước'], sales: [0, 3, 5, 7, 9, 12], active: 27, renewal: 0.52, expiring: 4 },
+  { id: 'p-pb-1', name: 'Pickleball 12h giờ thấp điểm · 1 tháng', parts: [{ kind: 'court', sport: 'pb', qty: 12, offPeak: true }], months: 1, price: 1290000, extras: [], sales: [0, 0, 4, 6, 8, 11], active: 14, renewal: 0.6, expiring: 5 },
+  { id: 'p-yoga-3', name: 'Yoga 3 tháng', parts: [{ kind: 'class' }], months: 3, price: 2400000, extras: [], sales: [11, 13, 15, 12, 10, 12], active: 64, renewal: 0.58, expiring: 7 },
+  { id: 'p-pt-12', name: 'PT 12 buổi', parts: [{ kind: 'pt', qty: 12 }], months: 3, price: 5400000, extras: [], sales: [6, 7, 5, 8, 9, 7], active: 21, renewal: 0.49, expiring: 4 },
+  { id: 'p-pt-24', name: 'PT 24 buổi', parts: [{ kind: 'pt', qty: 24 }], months: 6, price: 9600000, extras: [], sales: [3, 4, 4, 5, 4, 6], active: 17, renewal: 0.66, expiring: 2 },
+  { id: 'p-combo-6', name: 'Gym + Bơi 6 tháng', parts: [{ kind: 'gym' }, { kind: 'swim' }], months: 6, price: 5400000, extras: ['Khăn & nước'], sales: [5, 6, 9, 10, 6, 7], active: 35, renewal: 0.55, expiring: 3 },
+  { id: 'p-offpeak-3', name: 'Gym giờ thấp điểm 3 tháng', parts: [{ kind: 'gym', offPeak: true }], months: 3, price: 1350000, extras: [], sales: [7, 9, 8, 6, 8, 10], active: 29, renewal: 0.47, expiring: 5 },
+  { id: 'p-custom-ma', name: 'Gym 12 tháng + PT 24 buổi (riêng)', parts: [{ kind: 'gym' }, { kind: 'pt', qty: 24 }], months: 12, price: 16200000, extras: ['Tủ đồ riêng'], custom: 'Nguyễn Minh Anh', sales: [0, 0, 0, 0, 0, 0], active: 1, renewal: null, expiring: 0 },
 ];
 
 const W = (s: string): Shift[] => s.split(' ').map((x) => (x === '-' ? 'off' : (x as Shift)));
@@ -182,3 +186,24 @@ export const MONTH_REPORT: MonthReport = {
 
 /** Mật khẩu thử cho mọi tài khoản nhân viên trong dữ liệu mẫu */
 export const DEMO_PASSWORD = 'arena123';
+
+/** Việc chờ nhân viên xác nhận (đặt online, tiền cọc, gia hạn chuyển khoản, bảo lưu) + vài việc đã xử lý */
+export const NOTICES: Notice[] = [
+  { id: 'n1', kind: 'booking', sport: 'pb', who: 'Anh Khoa · 0903 221 487', detail: 'Pickleball · 21:00 – 22:00', at: '18:52', amount: 180000, note: 'Đặt qua website, sân nào cũng được', status: 'pending', booking: { sport: 'pb', start: 21, span: 1 } },
+  { id: 'n2', kind: 'booking', sport: 'bd', who: 'FC Sao Mai · 0938 640 112', detail: 'Sân 5 người · 22:00 – 23:00', at: '18:40', amount: 450000, status: 'pending', booking: { sport: 'bd', courtId: 'bd', start: 22, span: 1 } },
+  { id: 'n3', kind: 'booking', sport: 'tn', who: 'Chị Mai · 0977 305 218', detail: 'Tennis · 21:00 – 22:00', at: '18:31', amount: 250000, note: 'Muốn thuê thêm vợt', status: 'pending', booking: { sport: 'tn', courtId: 'tn', start: 21, span: 1 } },
+  { id: 'n4', kind: 'deposit', sport: 'cl', who: 'Chị Lan', detail: 'Cầu lông 1 · 21:00 – 22:00', at: '18:15', amount: 150000, note: 'MoMo · "COC SAN CL1 21H CHI LAN"', status: 'pending', bookingId: 'b4' },
+  { id: 'n5', kind: 'renewal', sport: 'gym', who: 'Trần Quốc Bảo · AR-00388', detail: 'Gia hạn Gym 6 tháng', at: '17:58', amount: 3600000, note: 'Vietcombank · "AR00388 GIA HAN GYM 6T"', status: 'pending', memberCode: 'AR-00388', planIndex: 1 },
+  { id: 'n6', kind: 'freeze', sport: 'gym', who: 'Hoàng Khánh Linh · AR-00633', detail: 'Bảo lưu 30 ngày · 19/10 – 17/11', at: '16:20', note: 'Đi công tác Đà Nẵng một tháng', status: 'pending', memberCode: 'AR-00633' },
+  { id: 'h1', kind: 'deposit', sport: 'bd', who: 'Team Bình', detail: 'Sân 5 người · 20:00 – 22:00', at: '17:05', amount: 900000, status: 'confirmed', resolvedAt: '17:20', resolvedBy: 'Trần Ngọc Linh' },
+  { id: 'h2', kind: 'booking', sport: 'cl', who: 'Anh Tài · 0909 112 003', detail: 'Cầu lông 1 · 19:00 – 20:00', at: '16:45', amount: 150000, status: 'rejected', resolvedAt: '16:50', resolvedBy: 'Phạm Quang Huy', reason: 'Khung giờ đã kín' },
+];
+
+/** Hợp đồng đặt sân định kỳ của các câu lạc bộ (hôm nay CN 18/10/2026) */
+export const RECURRING: RecurringBooking[] = [
+  { id: 'r1', club: 'CLB Phượng Hoàng', contact: 'Anh Hải · 0903 456 120', courtId: 'cl1', days: [6], start: 18, span: 2, from: '2026-09-06', to: '2026-12-27', pricePerSession: 270000, discount: 0.1, pay: 'month', status: 'active', skips: ['2026-10-04'], paidSessions: 7 },
+  { id: 'r2', club: 'Team Q7', contact: 'Chị Thảo · 0938 777 102', courtId: 'pbb', days: [2, 6], start: 19, span: 2, from: '2026-10-04', to: '2026-12-27', pricePerSession: 306000, discount: 0.15, pay: 'prepaid', status: 'active', skips: [], paidSessions: 25 },
+  { id: 'r3', club: 'FC Văn Phòng', contact: 'Anh Long · 0909 334 556', courtId: 'bd', days: [0, 6], start: 18, span: 2, from: '2026-08-03', to: '2026-10-26', pricePerSession: 828000, discount: 0.08, pay: 'month', status: 'active', skips: [], paidSessions: 22 },
+  { id: 'r4', club: 'Nhóm Sáu', contact: 'Anh Sáu · 0912 006 006', courtId: 'pba', days: [5], start: 17, span: 2, from: '2026-09-05', to: '2026-11-28', pricePerSession: 331000, discount: 0.08, pay: 'month', status: 'paused', skips: [], paidSessions: 5 },
+  { id: 'r5', club: 'CLB Tennis Sài Gòn', contact: 'Cô Hạnh · 0977 220 330', courtId: 'tn', days: [1, 3], start: 6, span: 2, from: '2026-07-07', to: '2026-09-29', pricePerSession: 450000, discount: 0.1, pay: 'month', status: 'ended', skips: [], paidSessions: 25 },
+];

@@ -5,10 +5,10 @@ import { Badge, Banner, Btn, Screen, SportBadge } from '../../../components/kit'
 import { Card, Label, Num, T } from '../../../components/ui';
 import { useSetTournamentStatus, useTournament } from '../../../hooks/useAdmin';
 import { vnd } from '../../../lib/format';
+import { formatLabel, formatSummary } from '../../../lib/tournament';
 import { useColors } from '../../../theme/tokens';
 import type { Tournament } from '../../../types/admin';
 
-const FORMAT = { knockout: 'Loại trực tiếp', roundrobin: 'Vòng tròn', groups: 'Vòng bảng + loại trực tiếp' } as const;
 
 /** Thứ tự hạt giống chuẩn (giống website): 8 → [1,8,4,5,2,7,3,6] */
 function seedOrder(size: number) {
@@ -49,7 +49,7 @@ export default function AdminTournamentDetail() {
   );
 
   return (
-    <Screen title={t.name} sub={`${t.entry} · ${FORMAT[t.format]}`} back>
+    <Screen title={t.name} sub={`${t.entry} · ${formatLabel(t.format)}`} back>
       {notice && <Banner text={notice} />}
       <Card style={{ gap: 10 }}>
         <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
@@ -60,6 +60,8 @@ export default function AdminTournamentDetail() {
           </View>
         </View>
         {[
+          ['Thể thức', formatSummary(t)],
+          ...(t.matchRule ? [['Thể thức trận', t.matchRule]] : []),
           ['Hạn đăng ký', t.regDeadline],
           ['Sân & giờ', t.courts],
           ['Lệ phí', t.fee ? `${vnd(t.fee)} / ${t.entry === 'Đơn' ? 'VĐV' : t.entry === 'Đôi' ? 'cặp' : 'đội'}` : 'Miễn phí'],
@@ -81,9 +83,9 @@ export default function AdminTournamentDetail() {
         />
       </Card>
 
-      {t.format === 'knockout' && (
+      {(t.format === 'knockout' || t.format === 'double' || t.format === 'swiss') && (
         <Card style={{ gap: 8 }}>
-          <Label>Vòng 1 · {size / 2} trận</Label>
+          <Label>{t.format === 'double' ? 'Vòng 1 nhánh thắng' : t.format === 'swiss' ? `Vòng 1 / ${t.swissRounds ?? 5} (ghép theo hạt giống)` : 'Vòng 1'} · {size / 2} trận</Label>
           {Array.from({ length: size / 2 }, (_, i) => {
             const a = s[order[2 * i] - 1];
             const b = s[order[2 * i + 1] - 1];
@@ -109,7 +111,7 @@ export default function AdminTournamentDetail() {
 
       {t.format === 'roundrobin' && (
         <Card>
-          <T>{t.maxEntrants} suất · mỗi suất đấu {t.maxEntrants - 1} trận · tổng {(t.maxEntrants * (t.maxEntrants - 1)) / 2} trận.</T>
+          <T>{t.maxEntrants} suất · mỗi suất đấu {(t.legs ?? 1) * (t.maxEntrants - 1)} trận · tổng {((t.legs ?? 1) * t.maxEntrants * (t.maxEntrants - 1)) / 2} trận{t.legs === 2 ? ' (lượt đi – về)' : ''}.</T>
         </Card>
       )}
       <T size={12} color={c.inkMuted}>[k] là hạt giống; “Suất k” là suất còn trống chờ đăng ký.</T>

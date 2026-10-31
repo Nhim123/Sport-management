@@ -79,7 +79,7 @@ export default function Register() {
 
           <View style={{ gap: 6 }}>
             <Num size={34}>TẠO TÀI KHOẢN</Num>
-            <T size={14} color={c.inkMuted}>Dành cho nhân viên quản lý và lễ tân. Cần mã nhân viên do quản lý cấp – không có mã thì không tạo được tài khoản.</T>
+            <T size={14} color={c.inkMuted}>Mỗi câu lạc bộ chỉ có một tài khoản, do người quản lý tạo bằng mã nhân viên của mình. Nhân viên khác không cần tài khoản.</T>
           </View>
 
           <View style={{ flexDirection: 'row', gap: 8 }}>
@@ -102,11 +102,11 @@ export default function Register() {
           {step === 0 ? (
             <Card style={{ gap: 14, padding: 16 }}>
               <View style={{ gap: 6 }}>
-                <Field label="Mã nhân viên *" value={code} onChangeText={setCode} placeholder="VD: NV03" autoCapitalize="characters" />
+                <Field label="Mã nhân viên *" value={code} onChangeText={setCode} placeholder="VD: NV01" autoCapitalize="characters" />
                 <T size={12} color={c.inkMuted}>Bắt buộc. Mã in trên thẻ nhân viên hoặc hỏi quản lý câu lạc bộ.</T>
               </View>
               <View style={{ gap: 6 }}>
-                <Field label="Số điện thoại trong hồ sơ *" value={phone} onChangeText={setPhone} placeholder="VD: 0935 402 118" keyboardType="phone-pad" onSubmitEditing={verify} />
+                <Field label="Số điện thoại trong hồ sơ *" value={phone} onChangeText={setPhone} placeholder="VD: 0908 111 222" keyboardType="phone-pad" onSubmitEditing={verify} />
                 <T size={12} color={c.inkMuted}>Dùng để xác nhận bạn là chủ của mã nhân viên này.</T>
               </View>
               <Btn label={busy ? 'Đang kiểm tra…' : 'Tiếp tục'} disabled={busy} onPress={verify} />
