@@ -428,6 +428,16 @@ button.s-free:hover { background: var(--brand-tint); color: var(--brand-ink); }
 .cs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: 16px; }
 .cs-card { display: flex; flex-direction: column; gap: 14px; padding: 18px 20px 16px; border-top: 4px solid var(--cs-accent); }
 .cs-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+/* Hình sân theo môn trên thẻ trạng thái */
+.cs-art { position: relative; aspect-ratio: 1.8; margin: -2px -4px 0; border-radius: var(--radius-md); overflow: hidden; }
+.cs-art svg { display: block; width: 100%; height: 100%; }
+.cs-art-logo { position: absolute; top: 8px; right: 8px; border-radius: 10px; box-shadow: 0 0 0 2px var(--surface-raised); }
+.cs-art-lock { position: absolute; inset: 0; margin: auto; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: rgba(0, 0, 0, 0.55); color: #fff; }
+.cs-strip-card { display: flex; flex-direction: column; gap: 10px; padding: 14px 18px; }
+.cs-strip-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; }
+.cs-strip-head .num b { font: 700 22px/26px var(--font-display); }
+.cs-strip { display: flex; gap: 3px; height: 14px; border-radius: 7px; overflow: hidden; }
+.cs-strip span { flex: 1; }
 .cs-name { font: 700 26px/30px var(--font-display); }
 .cs-kind { font-size: 13px; color: var(--ink-muted); }
 .cs-main { display: flex; flex-direction: column; gap: 8px; min-height: 104px; }

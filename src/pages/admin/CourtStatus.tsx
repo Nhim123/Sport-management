@@ -1,5 +1,6 @@
 import { useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
+import { CourtArt } from '../../components/CourtArt';
 import { Icon } from '../../components/Icon';
 import { isLockId, lockBookings, sportsIn, useCourts } from '../../store/courts';
 import { CLOSE_HOUR, NOW_HOUR, OPEN_HOUR, SPORTS, TODAY_LABEL, type Booking, type Sport } from '../../data/mock';
@@ -144,6 +145,20 @@ export default function CourtStatusPage() {
         <span>{hh(CLOSE_HOUR)}</span>
       </div>
 
+      <div className="card cs-strip-card">
+        <div className="cs-strip-head">
+          <b>Sân lúc {hm(t)}</b>
+          <span className="num">
+            <b>{counts.busy}</b>/{statuses.length} đang dùng
+          </span>
+        </div>
+        <div className="cs-strip" role="img" aria-label={statuses.map((s) => `${s.court.name}: ${KIND[s.kind].label}`).join(', ')}>
+          {statuses.map((s) => (
+            <span key={s.court.id} title={`${s.court.name} · ${KIND[s.kind].label}`} style={{ background: KIND[s.kind].accent }} />
+          ))}
+        </div>
+      </div>
+
       <div className="cs-sum" role="group" aria-label="Lọc theo trạng thái">
         {GROUPS.map((g) => (
           <button
@@ -225,6 +240,7 @@ function CourtCard({ s, t, canLock, actions }: { s: CourtStatus; t: number; canL
 
   return (
     <article className="card cs-card" style={{ '--cs-accent': meta.accent } as CSSProperties} aria-labelledby={titleId}>
+      <CourtArt sport={court.sport} kind={kind} label={`Sân ${court.name}: ${meta.label}`} />
       <div className="cs-head">
         <div style={{ minWidth: 0 }}>
           <h2 id={titleId} className="cs-name">{court.name}</h2>
