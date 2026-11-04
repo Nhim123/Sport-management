@@ -197,7 +197,7 @@ export interface MonthReport {
 
 // ---------- Thông báo cần xác nhận ----------
 
-export type NoticeKind = 'booking' | 'deposit' | 'renewal' | 'freeze';
+export type NoticeKind = 'booking' | 'deposit' | 'renewal' | 'freeze' | 'payment';
 
 export interface Notice {
   id: string;
@@ -215,6 +215,7 @@ export interface Notice {
   // Tham chiếu để xử lý khi xác nhận
   booking?: { sport: Sport; courtId?: string; start: number; span: number }; // courtId = sân khách chọn (nếu có)
   bookingId?: string;
+  weekBookingId?: string; // lượt đặt theo ca (chờ chủ sân xác nhận thanh toán)
   memberCode?: string;
   planIndex?: number;
 }

@@ -13,6 +13,7 @@ import type { Notice, NoticeKind, Tone } from '../../types/admin';
 /** Nhãn, màu, nút xác nhận và lý do từ chối cho từng loại việc */
 const KIND: Record<NoticeKind, { label: string; tone: Tone; confirm: string; reasons: string[] }> = {
   booking: { label: 'Đặt sân online', tone: 'info', confirm: 'Xếp sân', reasons: ['Khung giờ đã kín', 'Sân đang bảo trì', 'Thông tin liên hệ không hợp lệ'] },
+  payment: { label: 'Khách đặt sân · chờ xác nhận thanh toán', tone: 'warning', confirm: 'Đã nhận thanh toán', reasons: ['Chưa nhận được tiền', 'Sai số tiền', 'Khách hủy đặt'] },
   deposit: { label: 'Tiền cọc chờ đối soát', tone: 'warning', confirm: 'Đã nhận cọc', reasons: ['Chưa nhận được tiền', 'Sai số tiền'] },
   renewal: { label: 'Gia hạn chuyển khoản', tone: 'success', confirm: 'Xác nhận gia hạn', reasons: ['Chưa nhận được tiền', 'Sai số tiền', 'Sai mã hội viên'] },
   freeze: { label: 'Xin bảo lưu', tone: 'class', confirm: 'Duyệt bảo lưu', reasons: ['Không đủ điều kiện bảo lưu', 'Thiếu giấy tờ chứng minh'] },

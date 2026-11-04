@@ -189,6 +189,7 @@ export const DEMO_PASSWORD = 'arena123';
 
 /** Việc chờ nhân viên xác nhận (đặt online, tiền cọc, gia hạn chuyển khoản, bảo lưu) + vài việc đã xử lý */
 export const NOTICES: Notice[] = [
+  { id: 'np1', kind: 'payment', sport: 'cl', who: 'Anh Dũng · 0905 667 889', detail: 'Cầu lông 2 · 2 ca', at: '18:58', amount: 600000, note: 'Khách đặt: T4 Ca tối 1, T6 Ca tối 1. Xin xác nhận đã nhận thanh toán.', status: 'pending', weekBookingId: 'seed-np1' },
   { id: 'n1', kind: 'booking', sport: 'pb', who: 'Anh Khoa · 0903 221 487', detail: 'Pickleball · 21:00 – 22:00', at: '18:52', amount: 180000, note: 'Đặt qua website, sân nào cũng được', status: 'pending', booking: { sport: 'pb', start: 21, span: 1 } },
   { id: 'n2', kind: 'booking', sport: 'bd', who: 'FC Sao Mai · 0938 640 112', detail: 'Sân 5 người · 22:00 – 23:00', at: '18:40', amount: 450000, status: 'pending', booking: { sport: 'bd', courtId: 'bd', start: 22, span: 1 } },
   { id: 'n3', kind: 'booking', sport: 'tn', who: 'Chị Mai · 0977 305 218', detail: 'Tennis · 21:00 – 22:00', at: '18:31', amount: 250000, note: 'Muốn thuê thêm vợt', status: 'pending', booking: { sport: 'tn', courtId: 'tn', start: 21, span: 1 } },

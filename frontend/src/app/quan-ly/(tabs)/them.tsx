@@ -10,6 +10,7 @@ import { radius, useColors } from '../../../theme/tokens';
 
 const ITEMS: { label: string; sub: string; icon: IconName; href: Href }[] = [
   { label: 'Trạng thái sân', sub: 'Sân đang dùng, check-in, thu cọc, khóa sân', icon: 'activity', href: '/quan-ly/trang-thai' },
+  { label: 'Đặt & xếp sân', sub: 'Chọn sân, ngày & ca · gửi chủ sân xác nhận thanh toán', icon: 'calendar', href: '/quan-ly/xep-lich' },
   { label: 'Đặt định kỳ', sub: 'CLB thuê sân cố định hàng tuần', icon: 'renew', href: '/quan-ly/dinh-ky' as Href },
   { label: 'Giải đấu', sub: 'Tạo giải, cặp đấu, mở/đóng đăng ký', icon: 'trophy', href: '/quan-ly/giai-dau' as Href },
   { label: 'Gói tập', sub: 'Tự ghép gym, sân, lớp, PT, bơi', icon: 'tag', href: '/quan-ly/goi-tap' },

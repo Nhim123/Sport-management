@@ -4,6 +4,7 @@
 import { vnd } from '../lib/format';
 import type { AdminBooking, AdminMember, ClassToday, CourtLive, Notice, PlanStat, RecurringBooking, ScanLogEntry, ScanResult, Shift, StaffMember, Tournament, Verdict } from '../types/admin';
 import { mockDelay } from './client';
+import { markWeekPaid } from './courts.api';
 import { addDays, conflicts, occurrences, TODAY_ISO } from '../lib/recurring';
 import { COURTS } from '../mocks/data';
 import {
@@ -347,6 +348,15 @@ export const SAMPLE_CODES: { label: string; code: string }[] = [
 
 export const getNotices = () => mockDelay(notices.map((n) => ({ ...n })), 150);
 
+export type NewNotice = Omit<Notice, 'id' | 'at' | 'status' | 'resolvedAt' | 'resolvedBy'>;
+
+/** Tạo thông báo mới cho chủ sân (VD: khách đặt sân xong, xin xác nhận thanh toán) */
+export async function createNotice(input: NewNotice): Promise<Notice> {
+  const created: Notice = { ...input, id: 'nt' + Date.now().toString(36), at: nowLabel(), status: 'pending' };
+  notices = [created, ...notices];
+  return mockDelay({ ...created }, 200);
+}
+
 function resolveNotice(id: string, status: Notice['status'], by: string, patch: Partial<Notice> = {}) {
   notices = notices.map((n) => (n.id === id ? { ...n, ...patch, status, resolvedAt: nowLabel(), resolvedBy: by } : n));
 }
@@ -377,6 +387,8 @@ export async function confirmNotice(id: string, by: string, placement?: { courtI
     await updateBooking(n.bookingId, { state: 'booked', sub: undefined });
   } else if (n.kind === 'renewal' && n.memberCode && n.planIndex !== undefined) {
     await renewMember(n.memberCode, n.planIndex, 'Chuyển khoản');
+  } else if (n.kind === 'payment' && n.weekBookingId) {
+    markWeekPaid(n.weekBookingId); // chuyển lượt đặt theo ca sang đã thanh toán
   } else if (n.kind === 'freeze' && n.memberCode) {
     members = members.map((m) =>
       m.code === n.memberCode

@@ -133,6 +133,14 @@ export function useConfirmClassEntry() {
 // ---------- Thông báo cần xác nhận ----------
 export const useNotices = () => useQuery({ queryKey: ak.notices, queryFn: api.getNotices });
 
+export function useCreateNotice() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (n: api.NewNotice) => api.createNotice(n),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ak.notices }),
+  });
+}
+
 function useNoticeMutation<V>(fn: (v: V) => Promise<boolean>) {
   const qc = useQueryClient();
   return useMutation({
@@ -141,6 +149,7 @@ function useNoticeMutation<V>(fn: (v: V) => Promise<boolean>) {
       qc.invalidateQueries({ queryKey: ak.notices });
       qc.invalidateQueries({ queryKey: ak.bookings });
       qc.invalidateQueries({ queryKey: ak.members });
+      qc.invalidateQueries({ queryKey: ['courts'] }); // lưới xếp sân đổi khi xác nhận thanh toán
     },
   });
 }
