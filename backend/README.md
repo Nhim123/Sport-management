@@ -67,7 +67,8 @@ Phương án đề xuất: Supabase (Postgres) + Render (Docker), đều chọn 
    - Dùng pooler thay vì *Direct connection*, vì direct connection chỉ có IPv6 mà Render không kết nối được.
    - Gói Free tạm dừng project sau 7 ngày không có truy cập. Chạy thật thì nên lên gói Pro.
 2. **API (Render):**
-   - Vào New → Web Service → chọn repo. Root Directory `backend`, Runtime **Docker**, Region Singapore.
+   - Cách nhanh: vào **New → Blueprint** → chọn repo. Render đọc `render.yaml` ở thư mục gốc (Docker, Singapore, gói Free, health check) và chỉ hỏi `DATABASE_URL` / `DIRECT_URL`.
+   - Hoặc tạo tay: New → Web Service → chọn repo. Root Directory `backend`, Runtime **Docker**, Region Singapore, với các biến dưới đây.
    - Environment:
      - `DATABASE_URL` và `DIRECT_URL` = hai chuỗi của Supabase ở trên
      - `CORS_ORIGIN=https://admin.<tên-miền>`

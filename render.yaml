@@ -1,0 +1,29 @@
+# Render Blueprint – tạo backend Arena trên Render (Dashboard → New → Blueprint → chọn repo này).
+# CSDL là Supabase: hai chuỗi kết nối nhập tay khi tạo Blueprint (sync: false = không lưu trong git).
+services:
+  - type: web
+    name: arena-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    region: singapore
+    # Free: ngủ sau 15 phút không có truy cập. Lên "starter" khi chạy thật.
+    plan: free
+    branch: main
+    healthCheckPath: /api/v1/health
+    # Chỉ build lại khi backend đổi
+    buildFilter:
+      paths:
+        - backend/**
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Supabase → Connect → ORM → Prisma: Transaction pooler (cổng 6543, có ?pgbouncer=true&connection_limit=1)
+      - key: DATABASE_URL
+        sync: false
+      # Supabase: Session pooler (cổng 5432) – dùng cho prisma migrate deploy lúc khởi động
+      - key: DIRECT_URL
+        sync: false
+      # Đổi thành https://admin.<tên-miền> khi web quản trị gọi API
+      - key: CORS_ORIGIN
+        value: "*"
