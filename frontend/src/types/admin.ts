@@ -178,6 +178,44 @@ export interface StaffMember {
   note?: string;
 }
 
+/** Nhân viên tiếp thị của Arena – hướng dẫn chủ sân đăng ký, được ghi nhận doanh số theo mã */
+export interface SalesRep {
+  /** Mã nhân viên Arena cấp, VD: MKT001 */
+  code: string;
+  name: string;
+  /** Nhóm / khu vực phụ trách */
+  team: string;
+  phone: string;
+  active: boolean;
+}
+
+/** Hồ sơ đăng ký câu lạc bộ mới (chủ / người đại diện tự tạo tài khoản quản lý) */
+export interface ClubSignup {
+  /** Mã nhân viên tiếp thị Arena đã hướng dẫn đăng ký (bắt buộc, đã xác minh) – dùng để tính doanh số */
+  salesCode: string;
+  owner: {
+    name: string;
+    phone: string;
+    email: string;
+  };
+  club: {
+    name: string;
+    /** Số nhà, tên đường (VD: 12 Nguyễn Thị Thập) */
+    address: string;
+    /** Địa giới 2 cấp (từ 01/07/2025): Tỉnh/Thành phố → Phường/Xã/Đặc khu – tên đầy đủ + mã theo danh mục hành chính */
+    province: string;
+    provinceCode?: number;
+    ward: string;
+    wardCode?: number;
+    /** Toạ độ đã ghim khi chọn gợi ý địa chỉ / dùng vị trí hiện tại (không bắt buộc) */
+    location?: { lat: number; lng: number };
+    /** Các môn kinh doanh (ít nhất một) */
+    sports: Activity[];
+    /** Số sân theo từng môn có sân (chỉ các môn sân đã chọn) */
+    courts: Partial<Record<Sport, number>>;
+  };
+}
+
 export interface MonthReport {
   label: string;
   compare: string;
