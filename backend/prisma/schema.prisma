@@ -1,11 +1,14 @@
-// Prisma schema cho Arena. Dev dùng SQLite; đổi provider + DATABASE_URL để sang PostgreSQL.
+// Prisma schema cho Arena – PostgreSQL (dev: Docker, production: Supabase). Đổi schema: npm run db:migrate -- --name <tên> rồi commit thư mục migrations/.
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider = "postgresql"
+  // API chạy qua pooler của Supabase (transaction mode, cổng 6543)
+  url       = env("DATABASE_URL")
+  // Migration cần kết nối giữ phiên (session pooler, cổng 5432) – pooler transaction không chạy được migrate
+  directUrl = env("DIRECT_URL")
 }
 
 model Court {
