@@ -22,9 +22,6 @@ export function validateOwner(o: ClubSignup['owner']): OwnerErrors {
   const name = o.name.trim();
   if (!name) e.name = 'Nhập họ và tên người đại diện.';
   else if (name.split(/\s+/).length < 2) e.name = 'Nhập đầy đủ họ và tên (VD: Nguyễn Văn An).';
-  const cccd = digitsOf(o.cccd);
-  if (!cccd) e.cccd = 'Nhập số căn cước công dân.';
-  else if (cccd.length !== 12) e.cccd = `Số CCCD gồm 12 chữ số (đang có ${cccd.length}).`;
   const phone = digitsOf(o.phone);
   if (!phone) e.phone = 'Nhập số điện thoại – dùng để đăng nhập.';
   else if (!/^0\d{9}$/.test(phone)) e.phone = 'Số điện thoại di động gồm 10 chữ số, bắt đầu bằng 0.';

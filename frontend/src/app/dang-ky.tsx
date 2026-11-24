@@ -5,7 +5,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { checkOwner, MIN_PASSWORD, verifySalesCode } from '../api/auth.api';
 import { AddressPicker, type AddressValue } from '../components/AddressPicker';
-import { AuthField, formatCccd, formatPhone, passwordStrength, type AuthFieldRef } from '../components/AuthField';
+import { AuthField, formatPhone, passwordStrength, type AuthFieldRef } from '../components/AuthField';
 import { Icon } from '../components/Icon';
 import { Avatar, Badge, Banner, Btn, SPORT_ICON, SportBadge } from '../components/kit';
 import { Label, Num, T } from '../components/ui';
@@ -35,7 +35,7 @@ export default function Register() {
   const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
 
   const [step, setStep] = useState(0);
-  const [owner, setOwner] = useState<ClubSignup['owner']>({ name: '', cccd: '', phone: '', email: '' });
+  const [owner, setOwner] = useState<ClubSignup['owner']>({ name: '', phone: '', email: '' });
   const [club, setClub] = useState<ClubSignup['club']>({ name: '', address: '', province: '', ward: '', sports: [], courts: {} });
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -50,7 +50,6 @@ export default function Register() {
   const [salesErr, setSalesErr] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
 
-  const cccdRef = useRef<AuthFieldRef>(null);
   const phoneRef = useRef<AuthFieldRef>(null);
   const emailRef = useRef<AuthFieldRef>(null);
   const confirmRef = useRef<AuthFieldRef>(null);
@@ -251,23 +250,8 @@ export default function Register() {
                   autoComplete="name"
                   textContentType="name"
                   returnKeyType="next"
-                  onSubmitEditing={() => cccdRef.current?.focus()}
-                  error={ownerErr.name}
-                />
-                <AuthField
-                  ref={cccdRef}
-                  label="Số CCCD"
-                  icon="idcard"
-                  value={owner.cccd}
-                  onChangeText={setO('cccd', formatCccd)}
-                  placeholder="12 chữ số, VD: 079 203 004 567"
-                  keyboardType="number-pad"
-                  autoComplete="off"
-                  maxLength={15}
-                  returnKeyType="next"
                   onSubmitEditing={() => phoneRef.current?.focus()}
-                  hint="Dùng để xác minh chủ câu lạc bộ, không hiển thị cho khách."
-                  error={ownerErr.cccd}
+                  error={ownerErr.name}
                 />
                 <AuthField
                   ref={phoneRef}
@@ -413,7 +397,7 @@ export default function Register() {
                 <View style={[s.panel, { backgroundColor: c.surfaceRaised, borderColor: c.line }]}>
                   <Summary title="Người đại diện" onEdit={() => goTo(0)}>
                     <T w={700}>{owner.name.trim()}</T>
-                    <T size={12} color={c.inkMuted}>CCCD {owner.cccd} · {owner.phone}</T>
+                    <T size={12} color={c.inkMuted}>{owner.phone}</T>
                     <T size={12} color={c.inkMuted}>{owner.email}</T>
                   </Summary>
                   <View style={{ height: 1, backgroundColor: c.lineSoft }} />

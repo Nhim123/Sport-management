@@ -55,15 +55,12 @@ const phoneTaken = (phone: string) =>
   CLUBS.some((c) => digitsOf(c.staff.phone) === digitsOf(phone)) ||
   STAFF.some((s) => ACCOUNTS.has(s.code) && digitsOf(s.phone) === digitsOf(phone));
 
-/** Bước 1 của đăng ký: kiểm tra hồ sơ người đại diện – SĐT (dùng để đăng nhập) và CCCD chưa đăng ký câu lạc bộ khác */
+/** Bước 1 của đăng ký: kiểm tra hồ sơ người đại diện – SĐT (dùng để đăng nhập) chưa gắn với tài khoản nào */
 export async function checkOwner(owner: ClubSignup['owner']): Promise<void> {
   await mockDelay(null, 400);
   const e = validateOwner(owner);
   if (hasErrors(e)) throw new Error(Object.values(e).find(Boolean));
   if (phoneTaken(owner.phone)) throw new Error('Số điện thoại này đã có tài khoản – hãy đăng nhập, hoặc dùng số khác.');
-  if (CLUBS.some((c) => digitsOf(c.signup.owner.cccd) === digitsOf(owner.cccd))) {
-    throw new Error('Số CCCD này đã đứng tên một câu lạc bộ khác – mỗi người đại diện đăng ký một câu lạc bộ.');
-  }
 }
 
 /** Bước cuối: kiểm tra lại toàn bộ hồ sơ rồi tạo câu lạc bộ + tài khoản quản lý, đăng nhập luôn */

@@ -195,8 +195,6 @@ export interface ClubSignup {
   salesCode: string;
   owner: {
     name: string;
-    /** Căn cước công dân – 12 chữ số */
-    cccd: string;
     phone: string;
     email: string;
   };

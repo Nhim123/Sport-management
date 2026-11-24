@@ -102,11 +102,6 @@ export const AuthField = forwardRef<AuthFieldRef, Props>(function AuthField(
   );
 });
 
-/** Số CCCD dạng "001 203 004 567" (12 chữ số, nhóm 3) */
-export function formatCccd(raw: string) {
-  return raw.replace(/\D/g, '').slice(0, 12).replace(/(\d{3})(?=\d)/g, '$1 ');
-}
-
 /** Số điện thoại VN dạng "0908 111 222" (giữ tối đa 11 chữ số) */
 export function formatPhone(raw: string) {
   const d = raw.replace(/\D/g, '').slice(0, 11);
