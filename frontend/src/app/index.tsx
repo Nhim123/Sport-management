@@ -62,7 +62,7 @@ export default function Login() {
           <View style={{ flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 4 }}>
             <T size={13} color={c.inkMuted}>Chưa có tài khoản?</T>
             <Pressable accessibilityRole="button" onPress={() => router.push('/dang-ky')} hitSlop={6}>
-              <T size={13} w={700} color={c.brandInk}>Đăng ký bằng mã nhân viên</T>
+              <T size={13} w={700} color={c.brandInk}>Đăng ký câu lạc bộ mới</T>
             </Pressable>
           </View>
 

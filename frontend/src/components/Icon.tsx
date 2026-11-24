@@ -5,7 +5,7 @@ export type IconName =
   | 'home' | 'calendar' | 'dumbbell' | 'person' | 'coach' | 'renew' | 'bell' | 'qr' | 'chevronLeft' | 'timer' | 'check'
   | 'users' | 'trophy' | 'tag' | 'idcard' | 'chart' | 'activity' | 'search' | 'plus' | 'chevronRight' | 'lock' | 'phone' | 'grid' | 'swap' | 'close'
   | 'badminton' | 'pickleball' | 'tennis' | 'football' | 'flash' | 'scan' | 'alert'
-  | 'yoga' | 'hiit' | 'swim' | 'whistle';
+  | 'yoga' | 'hiit' | 'swim' | 'whistle' | 'eye' | 'eyeOff' | 'info' | 'mail' | 'pin' | 'chevronDown';
 
 export function Icon({ name, size = 22, color }: { name: IconName; size?: number; color: ColorValue }) {
   const p = { stroke: color, strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, fill: 'none' };
@@ -74,6 +74,7 @@ export function Icon({ name, size = 22, color }: { name: IconName; size?: number
       )}
       {name === 'plus' && <Path {...p} d="M12 5v14M5 12h14" />}
       {name === 'chevronRight' && <Path {...p} d="M9 6l6 6-6 6" />}
+      {name === 'chevronDown' && <Path {...p} d="M6 9l6 6 6-6" />}
       {name === 'lock' && (
         <>
           <Rect {...p} x={4} y={11} width={16} height={10} rx={2} />
@@ -106,6 +107,31 @@ export function Icon({ name, size = 22, color }: { name: IconName; size?: number
       {name === 'flash' && <Path {...p} d="M13 2 4 14h7l-1 8 9-12h-7z" />}
       {name === 'scan' && <Path {...p} d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3M7 12h10" />}
       {name === 'alert' && <Path {...p} d="M12 3 2 20h20L12 3zM12 10v4M12 17.5v.01" />}
+      {name === 'eye' && (
+        <>
+          <Path {...p} d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
+          <Circle {...p} cx={12} cy={12} r={3} />
+        </>
+      )}
+      {name === 'eyeOff' && <Path {...p} d="M3 3l18 18M10.6 5.1A9.8 9.8 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.2 4.1M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2" />}
+      {name === 'mail' && (
+        <>
+          <Rect {...p} x={3} y={5} width={18} height={14} rx={2} />
+          <Path {...p} d="m3.5 6.5 8.5 6.5 8.5-6.5" />
+        </>
+      )}
+      {name === 'pin' && (
+        <>
+          <Path {...p} d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z" />
+          <Circle {...p} cx={12} cy={9.5} r={2.5} />
+        </>
+      )}
+      {name === 'info' && (
+        <>
+          <Circle {...p} cx={12} cy={12} r={9} />
+          <Path {...p} d="M12 11v5M12 7.5v.01" />
+        </>
+      )}
       {name === 'badminton' && (
         <>
           <Circle {...p} cx={12} cy={18.5} r={2.5} />
