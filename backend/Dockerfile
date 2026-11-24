@@ -1,6 +1,6 @@
 # Arena API – ảnh Docker cho production (Render, VPS, Cloud Run…).
 # Build:  docker build -t arena-api backend
-# Chạy:   docker run -e DATABASE_URL=postgresql://… -e CORS_ORIGIN=https://admin.example.com -p 4000:4000 arena-api
+# Chạy:   docker run -e DATABASE_URL=postgresql://… -e DIRECT_URL=postgresql://… -e CORS_ORIGIN=https://admin.example.com -p 4000:4000 arena-api
 
 # ---- Giai đoạn build: cài đủ thư viện, sinh Prisma client, biên dịch TypeScript ----
 FROM node:22-alpine AS build
