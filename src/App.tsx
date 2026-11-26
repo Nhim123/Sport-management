@@ -5,6 +5,7 @@ import Bookings from './pages/admin/Bookings';
 import CourtStatus from './pages/admin/CourtStatus';
 import Dashboard from './pages/admin/Dashboard';
 import Members from './pages/admin/Members';
+import PlanCreate from './pages/admin/PlanCreate';
 import Plans from './pages/admin/Plans';
 import Reports from './pages/admin/Reports';
 import StaffPage from './pages/admin/Staff';
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="giai-dau/tao-moi" element={<TournamentCreate />} />
           <Route path="giai-dau/:id" element={<TournamentDetail />} />
           <Route path="goi-tap" element={<Plans />} />
+          <Route path="goi-tap/tao-moi" element={<PlanCreate />} />
           <Route path="nhan-vien" element={<StaffPage />} />
           <Route path="bao-cao" element={<Reports />} />
           <Route path="cai-dat" element={<Placeholder title="Cài đặt" />} />
