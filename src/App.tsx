@@ -38,9 +38,7 @@ export default function App() {
           <Route path="giai-dau" element={<Tournaments />} />
           <Route path="giai-dau/tao-moi" element={<TournamentCreate />} />
           <Route path="giai-dau/:id" element={<TournamentDetail />} />
-          <Route path="lop-hoc" element={<Placeholder title="Lớp học & PT" />} />
           <Route path="goi-tap" element={<Plans />} />
-          <Route path="thanh-toan" element={<Placeholder title="Thanh toán" />} />
           <Route path="nhan-vien" element={<StaffPage />} />
           <Route path="bao-cao" element={<Reports />} />
           <Route path="cai-dat" element={<Placeholder title="Cài đặt" />} />

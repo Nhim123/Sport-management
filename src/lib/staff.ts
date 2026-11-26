@@ -2,7 +2,7 @@
 
 export type Role = 'manager' | 'reception' | 'pt' | 'coach' | 'tech' | 'cleaner';
 export type Shift = 'S' | 'C' | 'T' | 'off' | 'P';
-export type Module = 'dashboard' | 'bookings' | 'courts' | 'members' | 'tournaments' | 'plans' | 'payments' | 'reports' | 'staff' | 'settings';
+export type Module = 'dashboard' | 'bookings' | 'courts' | 'members' | 'tournaments' | 'plans' | 'reports' | 'staff' | 'settings';
 export type StatKey = 'checkins' | 'bookings' | 'salesRevenue' | 'ptSessions' | 'classes' | 'clients' | 'tickets';
 
 export interface StaffStats {
@@ -49,7 +49,6 @@ export const MODULES: { id: Module; label: string }[] = [
   { id: 'members', label: 'Hội viên' },
   { id: 'tournaments', label: 'Giải đấu' },
   { id: 'plans', label: 'Gói tập' },
-  { id: 'payments', label: 'Thanh toán' },
   { id: 'reports', label: 'Báo cáo doanh thu' },
   { id: 'staff', label: 'Nhân viên & lương' },
   { id: 'settings', label: 'Cài đặt' },
@@ -62,7 +61,7 @@ export const ROLES: Record<Role, { label: string; badge: string; perms: Module[]
   reception: {
     label: 'Lễ tân',
     badge: 'b-success',
-    perms: ['dashboard', 'bookings', 'courts', 'members', 'tournaments', 'payments'],
+    perms: ['dashboard', 'bookings', 'courts', 'members', 'tournaments'],
     stats: [['checkins', 'Lượt check-in xử lý'], ['bookings', 'Đơn đặt sân tạo'], ['salesRevenue', 'Doanh thu bán gói']],
   },
   pt: {
