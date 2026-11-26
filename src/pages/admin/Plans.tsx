@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { BarChart } from '../../components/BarChart';
 import { Icon } from '../../components/Icon';
 import { PlanEditor, type EditorMode } from '../../components/PlanEditor';
@@ -13,6 +14,7 @@ import {
   type Plan,
 } from '../../lib/plans';
 import { usePlans } from '../../store/plans';
+import type { PlanCreatedState } from './PlanCreate';
 
 type Tab = 'catalog' | 'custom' | 'paused';
 
@@ -20,10 +22,12 @@ const pct = (x: number) => (x * 100).toLocaleString('vi-VN', { maximumFractionDi
 
 export default function Plans() {
   const { plans, updatePlan } = usePlans();
+  // Quay về từ màn "Tạo gói theo mẫu": chọn sẵn gói vừa tạo và báo thành công
+  const created = useLocation().state as PlanCreatedState | null;
   const [tab, setTab] = useState<Tab>('catalog');
-  const [selId, setSelId] = useState<string | null>('p-gym-12');
+  const [selId, setSelId] = useState<string | null>(created?.planId ?? 'p-gym-12');
   const [editor, setEditor] = useState<{ mode: EditorMode; plan?: Plan; seed?: Plan } | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(created?.notice ?? null);
 
   const lists: Record<Tab, Plan[]> = {
     catalog: plans.filter((p) => p.status === 'active' && (!p.custom || p.listed)),
@@ -64,9 +68,9 @@ export default function Plans() {
         <button className="btn btn-secondary" type="button" onClick={() => open('custom')}>
           <Icon name="person" /> Gói theo yêu cầu
         </button>
-        <button className="btn btn-primary" type="button" onClick={() => open('catalog')}>
+        <Link className="btn btn-primary" to="/goi-tap/tao-moi">
           <Icon name="plus" /> Tạo gói theo mẫu
-        </button>
+        </Link>
       </header>
 
       <section aria-label={`Chỉ số gói tập ${CURRENT_MONTH}`} className="kpis">
