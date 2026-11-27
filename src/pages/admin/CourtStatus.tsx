@@ -5,6 +5,7 @@ import { Icon } from '../../components/Icon';
 import { isLockId, lockBookings, sportsIn, useCourts } from '../../store/courts';
 import { CLOSE_HOUR, NOW_HOUR, OPEN_HOUR, SPORTS, TODAY_LABEL, type Booking, type Sport } from '../../data/mock';
 import { SOON_MINUTES, courtStatus, fmtDuration, type CourtStatus, type CourtStatusKind } from '../../lib/courtStatus';
+import { loadPlaySlots, toHour, type PlaySlot } from '../../lib/playSlots';
 import { hh, hm } from '../../lib/format';
 import { useBookings } from '../../store/bookings';
 
@@ -50,6 +51,7 @@ export default function CourtStatusPage() {
   const { bookings, addBooking, updateBooking, removeBooking, isFree } = useBookings();
   const { visible, updateCourt } = useCourts();
   const [t, setT] = useState(NOW_HOUR);
+  const [slots] = useState(loadPlaySlots);
   const [sport, setSport] = useState<SportFilter>('all');
   const [group, setGroup] = useState<Group | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -71,6 +73,8 @@ export default function CourtStatusPage() {
   const isNow = t === NOW_HOUR;
   const hour = Math.floor(t);
   const move = (d: number) => setT((x) => Math.min(LAST, Math.max(OPEN_HOUR, x + d)));
+  const slotHour = (s: PlaySlot) => Math.min(LAST, Math.max(OPEN_HOUR, (toHour(s.from) + toHour(s.to)) / 2));
+  const activeSlot = slots.find((s) => t >= toHour(s.from) && t < toHour(s.to)) ?? null;
 
   const actionsFor = (s: CourtStatus): Actions => {
     const name = s.court.name;
@@ -130,19 +134,17 @@ export default function CourtStatusPage() {
         </div>
       </header>
 
-      <div className="cs-scrub">
-        <span>{hh(OPEN_HOUR)}</span>
-        <input
-          type="range"
-          min={OPEN_HOUR}
-          max={LAST}
-          step={STEP}
-          value={t}
-          aria-label="Chọn thời điểm xem"
-          aria-valuetext={hm(t)}
-          onChange={(e) => setT(Number(e.target.value))}
-        />
-        <span>{hh(CLOSE_HOUR)}</span>
+      <div className="cs-slots" role="group" aria-label="Khung giờ chơi">
+        <span className="cs-slots-lbl">Khung giờ</span>
+        {slots.map((s) => {
+          const on = activeSlot?.id === s.id;
+          return (
+            <button key={s.id} type="button" className={'chip cs-slot' + (on ? ' on' : '')} aria-pressed={on} onClick={() => setT(slotHour(s))}>
+              {s.name} <span className="cs-slot-range">{s.from}–{s.to}</span>
+            </button>
+          );
+        })}
+        <Link className="cs-slots-cfg" to="/cai-dat">Thiết lập khung giờ</Link>
       </div>
 
       <div className="card cs-strip-card">

@@ -9,8 +9,11 @@ import {
   FREEZE_OPTIONS,
   PT_OPTIONS,
   TEMPLATES,
+  accessFee,
   autoName,
+  extraFee,
   priceBreakdown,
+  ptFee,
   templateOf,
   type Access,
   type Extra,
@@ -21,7 +24,7 @@ import {
 import { usePlans } from '../store/plans';
 import { Icon } from './Icon';
 
-export type EditorMode = 'catalog' | 'custom';
+export type EditorMode = 'catalog' | 'custom' | 'free';
 
 interface Props {
   mode: EditorMode;
@@ -42,13 +45,19 @@ const shapeOf = (p: Plan): PlanShape => ({
   extras: p.extras,
   freezeDays: p.freezeDays,
   courtDiscount: p.courtDiscount,
+  fees: p.fees,
 });
+
+/** Gói không tiêu chuẩn: dựng từ trắng, không chọn sẵn quyền lợi */
+const FREE_START: PlanShape = { templateId: 'gym', access: [], months: 1, ptSessions: 0, offPeak: false, extras: [], freezeDays: 30, courtDiscount: 0 };
+
+const parseMoney = (s: string) => Number(s.replace(/\D/g, '').slice(0, 9)) || 0;
 
 export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
   const uid = useId();
   const { addPlan, updatePlan } = usePlans();
   const from = plan ?? seed;
-  const [shape, setShape] = useState<PlanShape>(from ? shapeOf(from) : templateOf('gym').defaults);
+  const [shape, setShape] = useState<PlanShape>(from ? shapeOf(from) : mode === 'catalog' ? templateOf('gym').defaults : FREE_START);
   const [name, setName] = useState(plan?.name ?? '');
   const [nameEdited, setNameEdited] = useState(!!plan);
   const [price, setPrice] = useState<number | null>(plan?.price ?? null);
@@ -70,7 +79,7 @@ export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
   const customerName = mode === 'custom' ? (member?.name ?? newCustomer.trim()) : '';
   const shortName = customerName.split(' ').slice(-2).join(' ');
   const generated = autoName(shape) + (mode === 'custom' && shortName ? ` (riêng ${shortName})` : '');
-  const finalName = nameEdited ? name : generated;
+  const finalName = mode !== 'catalog' ? name : nameEdited ? name : generated;
 
   const bd = priceBreakdown(shape);
   const finalPrice = price ?? bd.suggested;
@@ -90,6 +99,10 @@ export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
   };
   const toggleAccess = (a: Access, on: boolean) => set({ access: on ? [...shape.access, a] : shape.access.filter((x) => x !== a) });
   const toggleExtra = (e: Extra, on: boolean) => set({ extras: on ? [...shape.extras, e] : shape.extras.filter((x) => x !== e) });
+  // Lệ phí tùy chỉnh (gói không tiêu chuẩn) – đổi phí thì tính lại giá đề xuất
+  const setAccessFee = (a: Access, v: number) => { setShape((s) => ({ ...s, fees: { ...s.fees, access: { ...s.fees?.access, [a]: v } } })); setPrice(null); };
+  const setExtraFee = (e: Extra, v: number) => { setShape((s) => ({ ...s, fees: { ...s.fees, extras: { ...s.fees?.extras, [e]: v } } })); setPrice(null); };
+  const setPtFee = (v: number) => { setShape((s) => ({ ...s, fees: { ...s.fees, pt: v } })); setPrice(null); };
 
   const save = () => {
     setTouched(true);
@@ -110,6 +123,7 @@ export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
               note: note.trim() || undefined,
             }
           : undefined,
+      freeform: mode === 'free' || undefined,
       listed: mode === 'custom' ? listed : undefined,
     };
     if (plan) {
@@ -126,7 +140,7 @@ export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
       <div className="ce-head">
         <div>
           <span className="lbl">{mode === 'custom' ? 'Gói theo yêu cầu khách' : 'Gói trong danh mục'}</span>
-          <h2 className="ce-title">{plan ? 'Sửa gói tập' : mode === 'custom' ? 'Tạo gói riêng' : 'Tạo gói theo mẫu'}</h2>
+          <h2 className="ce-title">{plan ? 'Sửa gói tập' : mode === 'custom' ? 'Tạo gói riêng' : mode === 'free' ? 'Tạo gói không theo mẫu' : 'Tạo gói theo mẫu'}</h2>
         </div>
         <button className="btn btn-secondary btn-sm" type="button" onClick={onCancel}>Huỷ</button>
       </div>
@@ -163,8 +177,27 @@ export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
         </section>
       )}
 
+      {mode !== 'catalog' && (
+        <section className="ce-sec" aria-labelledby={uid + 'n'}>
+          <h3 id={uid + 'n'} className="ce-h3">{mode === 'custom' ? '2 · Tên gói' : '1 · Tên gói'}</h3>
+          <label className="field">
+            Tên gói
+            <input
+              className="inp inp-lg"
+              value={name}
+              onChange={(e) => { setName(e.target.value); setNameEdited(true); }}
+              placeholder={mode === 'custom' ? 'VD: Gói riêng cho khách, Gói 12 tháng + PT…' : 'VD: Gói linh hoạt 10 buổi, Gói hè sinh viên…'}
+              aria-invalid={touched && !!errors.name}
+              autoFocus={!plan && mode === 'free'}
+            />
+            {show('name')}
+          </label>
+        </section>
+      )}
+
+      {mode === 'catalog' && (
       <section className="ce-sec" aria-labelledby={uid + 't'}>
-        <h3 id={uid + 't'} className="ce-h3">{mode === 'custom' ? '2 · Bắt đầu từ mẫu' : '1 · Khuôn khổ gói'}</h3>
+        <h3 id={uid + 't'} className="ce-h3">1 · Khuôn khổ gói</h3>
         <div className="tpl-opts" role="radiogroup" aria-labelledby={uid + 't'}>
           {TEMPLATES.map((t) => (
             <label key={t.id} className="tpl-opt">
@@ -175,8 +208,9 @@ export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
             </label>
           ))}
         </div>
-        {!strict && <p className="muted" style={{ fontSize: 12 }}>Gói theo yêu cầu không bị giới hạn bởi khuôn khổ – chỉnh thoải mái bên dưới.</p>}
+        {!strict && <p className="muted" style={{ fontSize: 12 }}>Gói không bị giới hạn bởi khuôn khổ – chọn một mẫu để bắt đầu rồi chỉnh thoải mái bên dưới.</p>}
       </section>
+      )}
 
       <section className="ce-sec" aria-labelledby={uid + 'b'}>
         <h3 id={uid + 'b'} className="ce-h3">{mode === 'custom' ? '3' : '2'} · Thời hạn &amp; quyền lợi</h3>
@@ -199,7 +233,14 @@ export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
               <label key={a} className="check">
                 <input type="checkbox" checked={shape.access.includes(a)} disabled={required} onChange={(e) => { toggleAccess(a, e.target.checked); setPrice(null); }} />
                 {ACCESS[a].label}
-                <span className="muted" style={{ marginLeft: 'auto', fontSize: 12 }}>{required ? 'Bắt buộc' : `${vnd(ACCESS[a].monthly)}/th`}</span>
+                {mode !== 'catalog' ? (
+                  <span className={'fee-inline' + (shape.access.includes(a) ? '' : ' off')} onClick={(e) => e.preventDefault()}>
+                    <input className="inp" inputMode="numeric" value={accessFee(shape, a).toLocaleString('vi-VN')} onChange={(e) => setAccessFee(a, parseMoney(e.target.value))} aria-label={`Lệ phí ${ACCESS[a].label}`} />
+                    <span className="fee-unit">₫/tháng</span>
+                  </span>
+                ) : (
+                  <span className="muted" style={{ marginLeft: 'auto', fontSize: 12 }}>{required ? 'Bắt buộc' : `${vnd(accessFee(shape, a))}/th`}</span>
+                )}
               </label>
             );
           })}
@@ -207,7 +248,14 @@ export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
             <label key={e} className="check">
               <input type="checkbox" checked={shape.extras.includes(e)} onChange={(ev) => { toggleExtra(e, ev.target.checked); setPrice(null); }} />
               {EXTRAS[e].label}
-              <span className="muted" style={{ marginLeft: 'auto', fontSize: 12 }}>{vnd(EXTRAS[e].monthly)}/th</span>
+              {mode !== 'catalog' ? (
+                <span className={'fee-inline' + (shape.extras.includes(e) ? '' : ' off')} onClick={(ev) => ev.preventDefault()}>
+                  <input className="inp" inputMode="numeric" value={extraFee(shape, e).toLocaleString('vi-VN')} onChange={(ev) => setExtraFee(e, parseMoney(ev.target.value))} aria-label={`Lệ phí ${EXTRAS[e].label}`} />
+                  <span className="fee-unit">₫/tháng</span>
+                </span>
+              ) : (
+                <span className="muted" style={{ marginLeft: 'auto', fontSize: 12 }}>{vnd(extraFee(shape, e))}/th</span>
+              )}
             </label>
           ))}
           <label className="check">
@@ -225,6 +273,13 @@ export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
                 <option key={n} value={n}>{n ? `${n} buổi` : 'Không'}</option>
               ))}
             </select>
+            {mode !== 'catalog' && shape.ptSessions > 0 && (
+              <span className="fee-inline fee-pt">
+                <span className="muted" style={{ fontSize: 12 }}>Mỗi buổi</span>
+                <input className="inp" inputMode="numeric" value={ptFee(shape).toLocaleString('vi-VN')} onChange={(e) => setPtFee(parseMoney(e.target.value))} aria-label="Lệ phí mỗi buổi PT" />
+                <span className="fee-unit">₫</span>
+              </span>
+            )}
           </label>
           <label className="field">
             Bảo lưu tối đa
@@ -246,7 +301,7 @@ export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
       </section>
 
       <section className="ce-sec" aria-labelledby={uid + 'p'}>
-        <h3 id={uid + 'p'} className="ce-h3">{mode === 'custom' ? '4' : '3'} · Giá &amp; tên gói</h3>
+        <h3 id={uid + 'p'} className="ce-h3">{mode === 'catalog' ? '3 · Giá & tên gói' : mode === 'custom' ? '4 · Giá' : '3 · Giá'}</h3>
         <ul className="pe-lines">
           {bd.lines.map((l) => (
             <li key={l.label}>
@@ -276,16 +331,18 @@ export function PlanEditor({ mode, plan, seed, onDone, onCancel }: Props) {
           )}
           {show('price')}
         </label>
-        <label className="field">
-          Tên gói
-          <input className="inp" value={finalName} onChange={(e) => { setName(e.target.value); setNameEdited(true); }} aria-invalid={touched && !!errors.name} />
-          {nameEdited && (
-            <span className="field-hint">
-              <button type="button" className="link-btn" onClick={() => { setNameEdited(false); setName(''); }}>Đặt lại tên tự động</button>
-            </span>
-          )}
-          {show('name')}
-        </label>
+        {mode === 'catalog' && (
+          <label className="field">
+            Tên gói
+            <input className="inp" value={finalName} onChange={(e) => { setName(e.target.value); setNameEdited(true); }} aria-invalid={touched && !!errors.name} />
+            {nameEdited && (
+              <span className="field-hint">
+                <button type="button" className="link-btn" onClick={() => { setNameEdited(false); setName(''); }}>Đặt lại tên tự động</button>
+              </span>
+            )}
+            {show('name')}
+          </label>
+        )}
         {mode === 'custom' && (
           <label className="check">
             <input type="checkbox" checked={listed} onChange={(e) => setListed(e.target.checked)} /> Thêm vào danh mục để bán cho khách khác

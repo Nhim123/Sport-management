@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { BarChart } from '../../components/BarChart';
 import { Icon } from '../../components/Icon';
+import { PlanCard } from '../../components/PlanCard';
 import { PlanEditor, type EditorMode } from '../../components/PlanEditor';
 import { vnd, vndShort } from '../../lib/format';
 import {
@@ -28,6 +29,27 @@ export default function Plans() {
   const [selId, setSelId] = useState<string | null>(created?.planId ?? 'p-gym-12');
   const [editor, setEditor] = useState<{ mode: EditorMode; plan?: Plan; seed?: Plan } | null>(null);
   const [notice, setNotice] = useState<string | null>(created?.notice ?? null);
+  // Pop-up chọn cách tạo gói: theo mẫu hay tự điều chỉnh
+  const [chooser, setChooser] = useState(false);
+  // Xem trước & in mẫu thẻ cho một gói
+  const [cardPlan, setCardPlan] = useState<Plan | null>(null);
+
+  useEffect(() => {
+    if (!chooser && !editor && !cardPlan) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      if (chooser) setChooser(false);
+      else if (editor) setEditor(null);
+      else setCardPlan(null);
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [chooser, editor, cardPlan]);
 
   const lists: Record<Tab, Plan[]> = {
     catalog: plans.filter((p) => p.status === 'active' && (!p.custom || p.listed)),
@@ -68,9 +90,9 @@ export default function Plans() {
         <button className="btn btn-secondary" type="button" onClick={() => open('custom')}>
           <Icon name="person" /> Gói theo yêu cầu
         </button>
-        <Link className="btn btn-primary" to="/goi-tap/tao-moi">
-          <Icon name="plus" /> Tạo gói theo mẫu
-        </Link>
+        <button className="btn btn-primary" type="button" onClick={() => setChooser(true)}>
+          <Icon name="plus" /> Tạo gói
+        </button>
       </header>
 
       <section aria-label={`Chỉ số gói tập ${CURRENT_MONTH}`} className="kpis">
@@ -156,7 +178,7 @@ export default function Plans() {
                             <span style={{ minWidth: 0 }}>
                               <span style={{ display: 'block', fontWeight: 600 }}>{p.name}</span>
                               <span style={{ display: 'block', fontSize: 12, color: 'var(--ink-muted)' }}>
-                                {p.custom ? `Riêng: ${p.custom.customer}` : tpl.name} · {p.months} tháng
+                                {p.custom ? `Riêng: ${p.custom.customer}` : p.freeform ? 'Gói tự do' : tpl.name} · {p.months} tháng
                               </span>
                             </span>
                           </button>
@@ -176,8 +198,35 @@ export default function Plans() {
           </section>
         </div>
 
-        <aside className="card side" aria-label={editor ? 'Tạo / sửa gói tập' : 'Chi tiết gói tập'} style={{ flex: '1 1 360px', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {editor ? (
+        <aside className="card side" aria-label="Chi tiết gói tập" style={{ flex: '1 1 360px', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {selected ? (
+            <PlanDetail
+              plan={selected}
+              totalRevenue={kpi.revenue}
+              onEdit={() => open(selected.custom ? 'custom' : selected.freeform ? 'free' : 'catalog', selected)}
+              onCustomize={() => open('custom', undefined, selected)}
+              onCard={() => setCardPlan(selected)}
+              onToggle={() => {
+                const next = selected.status === 'active' ? 'paused' : 'active';
+                updatePlan(selected.id, { status: next });
+                setNotice(next === 'paused' ? `Đã ngừng bán ${selected.name}. Hội viên đang dùng không bị ảnh hưởng.` : `Đã mở bán lại ${selected.name}.`);
+              }}
+            />
+          ) : (
+            <p className="muted">Chọn một gói để xem thống kê.</p>
+          )}
+        </aside>
+      </div>
+
+      {editor && (
+        <div className="modal-backdrop" onMouseDown={() => setEditor(null)}>
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Tạo / sửa gói tập"
+            onMouseDown={(e) => e.stopPropagation()}
+          >
             <PlanEditor
               key={(editor.plan?.id ?? editor.seed?.id ?? 'new') + editor.mode}
               mode={editor.mode}
@@ -192,23 +241,72 @@ export default function Plans() {
                 setTab(editor.mode === 'custom' ? 'custom' : saved?.status === 'paused' ? 'paused' : 'catalog');
               }}
             />
-          ) : selected ? (
-            <PlanDetail
-              plan={selected}
-              totalRevenue={kpi.revenue}
-              onEdit={() => open(selected.custom ? 'custom' : 'catalog', selected)}
-              onCustomize={() => open('custom', undefined, selected)}
-              onToggle={() => {
-                const next = selected.status === 'active' ? 'paused' : 'active';
-                updatePlan(selected.id, { status: next });
-                setNotice(next === 'paused' ? `Đã ngừng bán ${selected.name}. Hội viên đang dùng không bị ảnh hưởng.` : `Đã mở bán lại ${selected.name}.`);
-              }}
-            />
-          ) : (
-            <p className="muted">Chọn một gói để xem thống kê.</p>
-          )}
-        </aside>
-      </div>
+          </div>
+        </div>
+      )}
+
+      {cardPlan && (
+        <div className="modal-backdrop" onMouseDown={() => setCardPlan(null)}>
+          <div className="modal-card pcard-modal" role="dialog" aria-modal="true" aria-label="Mẫu thẻ gói" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="ce-head">
+              <div>
+                <span className="lbl">Mẫu thẻ phát cho khách</span>
+                <h2 className="ce-title">Thẻ gói · {cardPlan.name}</h2>
+              </div>
+              <button className="btn btn-secondary btn-sm" type="button" onClick={() => setCardPlan(null)}>Đóng</button>
+            </div>
+            <div id="print-card" className="pcard-stage">
+              <PlanCard plan={cardPlan} />
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="btn btn-primary" type="button" onClick={() => window.print()}><Icon name="card" size={15} /> In thẻ</button>
+              <button className="btn btn-secondary" type="button" onClick={() => setCardPlan(null)}>Đóng</button>
+            </div>
+            <p className="muted" style={{ fontSize: 12 }}>Mẫu dùng chung cho mọi gói, tự điền tên gói và quyền lợi. Chủ thẻ và mã thẻ ghi tay hoặc in khi bán.</p>
+          </div>
+        </div>
+      )}
+
+      {chooser && (
+        <div className="modal-backdrop" onMouseDown={() => setChooser(false)}>
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Chọn cách tạo gói"
+            style={{ maxWidth: 520 }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="ce-head">
+              <div>
+                <span className="lbl">Tạo gói mới</span>
+                <h2 className="ce-title">Chọn cách tạo</h2>
+              </div>
+              <button className="btn btn-secondary btn-sm" type="button" onClick={() => setChooser(false)}>Huỷ</button>
+            </div>
+            <div className="plan-choose">
+              <button
+                type="button"
+                className="choose-card"
+                onClick={() => { setChooser(false); open('catalog'); }}
+              >
+                <span className="plan-ic lg" aria-hidden="true"><Icon name="tag" size={22} /></span>
+                <b>Theo mẫu</b>
+                <span className="muted">Chọn một khuôn mẫu chuẩn, thời hạn và quyền lợi theo mẫu. Nhanh và đúng chuẩn danh mục.</span>
+              </button>
+              <button
+                type="button"
+                className="choose-card"
+                onClick={() => { setChooser(false); open('free'); }}
+              >
+                <span className="plan-ic lg" aria-hidden="true"><Icon name="plus" size={22} /></span>
+                <b>Tự điều chỉnh</b>
+                <span className="muted">Dựng gói tự do, không ràng buộc khuôn mẫu. Tự chọn thời hạn, quyền lợi và giá.</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
@@ -230,12 +328,14 @@ function PlanDetail({
   totalRevenue,
   onEdit,
   onCustomize,
+  onCard,
   onToggle,
 }: {
   plan: Plan;
   totalRevenue: number;
   onEdit: () => void;
   onCustomize: () => void;
+  onCard: () => void;
   onToggle: () => void;
 }) {
   const tpl = templateOf(plan.templateId);
@@ -249,7 +349,7 @@ function PlanDetail({
       <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
         <span className="plan-ic lg" aria-hidden="true"><Icon name={tpl.icon} size={24} /></span>
         <div style={{ minWidth: 0 }}>
-          <span className="lbl">{plan.custom ? 'Gói riêng theo yêu cầu' : tpl.name}</span>
+          <span className="lbl">{plan.custom ? 'Gói riêng theo yêu cầu' : plan.freeform ? 'Gói tự do · không theo mẫu' : tpl.name}</span>
           <h2 style={{ font: '700 28px/32px var(--font-display)', overflowWrap: 'anywhere' }}>{plan.name}</h2>
         </div>
       </div>
@@ -303,6 +403,7 @@ function PlanDetail({
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button className="btn btn-primary" type="button" style={{ flex: '1 1 120px' }} onClick={onEdit}>Sửa gói</button>
+        <button className="btn btn-secondary" type="button" style={{ flex: '1 1 120px' }} onClick={onCard}><Icon name="card" size={15} /> Mẫu thẻ</button>
         {!plan.custom && (
           <button className="btn btn-secondary" type="button" style={{ flex: '1 1 120px' }} onClick={onCustomize}>Tạo gói riêng từ gói này</button>
         )}

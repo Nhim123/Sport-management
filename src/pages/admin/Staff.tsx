@@ -1,10 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { StaffEditor } from '../../components/StaffEditor';
 import { vnd } from '../../lib/format';
 import {
   EVENING_ALLOWANCE,
-  MODULES,
   MONTH_LABEL,
   NOW_SHIFT,
   ROLES,
@@ -54,6 +53,20 @@ export default function StaffPage() {
     return (role === 'all' || s.role === role) && (!k || s.name.toLowerCase().includes(k) || s.code.toLowerCase().includes(k) || s.phone.replace(/\D/g, '').includes(k.replace(/\D/g, '') || '#'));
   });
   const selected = staff.find((s) => s.id === selId) ?? null;
+
+  useEffect(() => {
+    if (!editor) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setEditor(null);
+    };
+    document.addEventListener('keydown', onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [editor]);
 
   const select = (id: string) => {
     setSelId(id);
@@ -258,21 +271,8 @@ export default function StaffPage() {
             </section>
           </div>
 
-          <aside className="card side" aria-label={editor ? 'Thêm / sửa nhân viên' : 'Hồ sơ nhân viên'} style={{ flex: '1 1 340px', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {editor ? (
-              <StaffEditor
-                key={editor.staff?.id ?? 'new'}
-                staff={editor.staff}
-                onCancel={() => setEditor(null)}
-                onDone={(msg, id) => {
-                  setEditor(null);
-                  setNotice(msg);
-                  setSelId(id);
-                  setRole('all');
-                  setQ('');
-                }}
-              />
-            ) : selected ? (
+          <aside className="card side" aria-label="Hồ sơ nhân viên" style={{ flex: '1 1 340px', padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {selected ? (
               <StaffDetail
                 s={selected}
                 onEdit={() => setEditor({ staff: selected })}
@@ -285,6 +285,31 @@ export default function StaffPage() {
               <p className="muted">Chọn một nhân viên để xem hồ sơ.</p>
             )}
           </aside>
+        </div>
+      )}
+
+      {editor && (
+        <div className="modal-backdrop" onMouseDown={() => setEditor(null)}>
+          <div
+            className="modal-card"
+            role="dialog"
+            aria-modal="true"
+            aria-label={editor.staff ? 'Sửa thông tin nhân viên' : 'Thêm nhân viên'}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <StaffEditor
+              key={editor.staff?.id ?? 'new'}
+              staff={editor.staff}
+              onCancel={() => setEditor(null)}
+              onDone={(msg, id) => {
+                setEditor(null);
+                setNotice(msg);
+                setSelId(id);
+                setRole('all');
+                setQ('');
+              }}
+            />
+          </div>
         </div>
       )}
     </>
@@ -471,22 +496,6 @@ function StaffDetail({ s, onEdit, onStatus }: { s: StaffT; onEdit: () => void; o
         {p.allowance > 0 && <li><span>Phụ cấp ca tối (ước tính)</span><span className="num">{vnd(p.allowance)}</span></li>}
         <li className="pe-total"><span>Lương tạm tính {MONTH_LABEL}</span><span className="num">{vnd(p.total)}</span></li>
       </ul>
-
-      <div>
-        <span className="lbl">Quyền truy cập</span>
-        <ul className="perm-list">
-          {MODULES.map((mod) => {
-            const ok = s.perms.includes(mod.id);
-            return (
-              <li key={mod.id} className={ok ? '' : 'no'}>
-                <Icon name={ok ? 'check' : 'lock'} size={14} />
-                {mod.label}
-                <span className="sr-only">{ok ? ': được truy cập' : ': không có quyền'}</span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button className="btn btn-primary" type="button" style={{ flex: '1 1 120px' }} onClick={onEdit}>Sửa thông tin</button>

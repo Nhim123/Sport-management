@@ -26,6 +26,14 @@ export const FREEZE_OPTIONS = [0, 15, 30, 60];
 export const COURT_DISCOUNT_OPTIONS = [0, 5, 10, 15, 20];
 export const CUSTOM_MONTHS = [1, 2, 3, 6, 9, 12];
 
+/** Ghi đè lệ phí từng dịch vụ cho riêng một gói (gói không tiêu chuẩn) */
+export interface PlanFees {
+  access?: Partial<Record<Access, number>>;
+  extras?: Partial<Record<Extra, number>>;
+  /** Tiền mỗi buổi PT */
+  pt?: number;
+}
+
 export interface PlanShape {
   templateId: TemplateId;
   access: Access[];
@@ -36,7 +44,14 @@ export interface PlanShape {
   extras: Extra[];
   freezeDays: number;
   courtDiscount: number; // %
+  /** Lệ phí tùy chỉnh riêng cho gói; không có thì dùng bảng phí chuẩn */
+  fees?: PlanFees;
 }
+
+/** Lệ phí áp dụng: ưu tiên phí tùy chỉnh của gói, nếu không có thì bảng phí chuẩn */
+export const accessFee = (p: PlanShape, a: Access) => p.fees?.access?.[a] ?? ACCESS[a].monthly;
+export const extraFee = (p: PlanShape, e: Extra) => p.fees?.extras?.[e] ?? EXTRAS[e].monthly;
+export const ptFee = (p: PlanShape) => p.fees?.pt ?? PT_PRICE;
 
 export interface PlanStats {
   /** Số gói bán ra 6 tháng gần nhất (T5 → T10/2026) */
@@ -65,6 +80,8 @@ export interface Plan extends PlanShape {
   status: 'active' | 'paused';
   /** Gói làm riêng theo yêu cầu một khách */
   custom?: CustomInfo;
+  /** Gói danh mục dựng tự do, không theo khuôn khổ mẫu */
+  freeform?: boolean;
   /** Gói riêng nhưng vẫn cho bán trong danh mục */
   listed?: boolean;
   createdAt: string;
@@ -130,12 +147,12 @@ export function priceBreakdown(p: PlanShape): { lines: { label: string; amount: 
   const lines: { label: string; amount: number }[] = [];
   let sub = 0;
   for (const a of p.access) {
-    const v = ACCESS[a].monthly * p.months;
+    const v = accessFee(p, a) * p.months;
     lines.push({ label: `${ACCESS[a].label} × ${p.months} tháng`, amount: v });
     sub += v;
   }
   for (const e of p.extras) {
-    const v = EXTRAS[e].monthly * p.months;
+    const v = extraFee(p, e) * p.months;
     lines.push({ label: `${EXTRAS[e].label} × ${p.months} tháng`, amount: v });
     sub += v;
   }
@@ -149,8 +166,9 @@ export function priceBreakdown(p: PlanShape): { lines: { label: string; amount: 
     sub -= sub * OFFPEAK_DISCOUNT;
   }
   if (p.ptSessions) {
-    const v = p.ptSessions * PT_PRICE;
-    lines.push({ label: `PT ${p.ptSessions} buổi × ${PT_PRICE.toLocaleString('vi-VN')}₫`, amount: v });
+    const unit = ptFee(p);
+    const v = p.ptSessions * unit;
+    lines.push({ label: `PT ${p.ptSessions} buổi × ${unit.toLocaleString('vi-VN')}₫`, amount: v });
     sub += v;
     if (p.ptSessions >= PT_BULK.from) {
       lines.push({ label: `Ưu đãi PT từ ${PT_BULK.from} buổi −${PT_BULK.discount * 100}%`, amount: -v * PT_BULK.discount });

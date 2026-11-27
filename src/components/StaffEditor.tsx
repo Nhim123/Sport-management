@@ -1,5 +1,5 @@
 import { useId, useState } from 'react';
-import { MODULES, ROLES, STATUS, type Module, type Role, type Staff } from '../lib/staff';
+import { ROLES, STATUS, type Module, type Role, type Staff } from '../lib/staff';
 import { useStaff } from '../store/staff';
 
 interface Props {
@@ -104,7 +104,7 @@ export function StaffEditor({ staff, onDone, onCancel }: Props) {
           </label>
         </div>
         <label className="field">
-          Email (để đăng nhập)
+          Email (tùy chọn)
           <input className="inp" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="ten@arena.vn" aria-invalid={touched && !!errors.email} />
           {show('email')}
         </label>
@@ -169,19 +169,6 @@ export function StaffEditor({ staff, onDone, onCancel }: Props) {
         </div>
         {show('pay')}
       </section>
-
-      <fieldset className="ce-sec pe-checks" aria-describedby={uid + 'ph'}>
-        <legend className="ce-h3" style={{ marginBottom: 2 }}>Quyền truy cập</legend>
-        <span id={uid + 'ph'} className="muted" style={{ fontSize: 12 }}>Mặc định theo vai trò {ROLES[role].label.toLowerCase()}; chỉnh riêng nếu cần.</span>
-        <div className="perm-grid">
-          {MODULES.map((m) => (
-            <label key={m.id} className="check">
-              <input type="checkbox" checked={perms.includes(m.id)} onChange={(e) => setPerms(e.target.checked ? [...perms, m.id] : perms.filter((x) => x !== m.id))} />
-              {m.label}
-            </label>
-          ))}
-        </div>
-      </fieldset>
 
       <label className="field">
         Ghi chú
