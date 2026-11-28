@@ -4,6 +4,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Icon, type IconName } from '../../components/Icon';
 import { DEFAULT_SLOTS, toHour, type PlaySlot } from '../../lib/playSlots';
+import { DEFAULT_MODES, type BookingModes } from '../../lib/bookingModes';
 
 const KEY = 'arena-settings';
 
@@ -19,16 +20,12 @@ interface Settings {
   closeTime: string;
   offpeakFrom: string;
   offpeakTo: string;
-  dDur3: number;
-  dDur6: number;
-  dDur12: number;
-  dOffpeak: number;
-  dMember: number;
   nExpiring: boolean;
   nShiftGap: boolean;
   nDailyRevenue: boolean;
   nPlanFull: boolean;
   slots: PlaySlot[];
+  booking: BookingModes;
 }
 
 const DEFAULTS: Settings = {
@@ -43,25 +40,21 @@ const DEFAULTS: Settings = {
   closeTime: '23:00',
   offpeakFrom: '09:00',
   offpeakTo: '16:00',
-  dDur3: 5,
-  dDur6: 10,
-  dDur12: 15,
-  dOffpeak: 25,
-  dMember: 10,
   nExpiring: true,
   nShiftGap: true,
   nDailyRevenue: true,
   nPlanFull: false,
   slots: DEFAULT_SLOTS,
+  booking: DEFAULT_MODES,
 };
 
-type SectionId = 'org' | 'account' | 'hours' | 'slots' | 'pricing' | 'notify';
+type SectionId = 'org' | 'account' | 'hours' | 'slots' | 'modes' | 'notify';
 const SECTIONS: { id: SectionId; label: string; icon: IconName; desc: string }[] = [
   { id: 'org', label: 'Thông tin cơ sở', icon: 'idcard', desc: 'Tên, địa chỉ và liên hệ hiển thị cho hội viên.' },
   { id: 'account', label: 'Tài khoản quản trị', icon: 'lock', desc: 'Mỗi cơ sở chỉ có một tài khoản quản trị. Nhân viên không có tài khoản đăng nhập riêng.' },
   { id: 'hours', label: 'Giờ hoạt động', icon: 'timer', desc: 'Giờ mở cửa và khung giờ thấp điểm dùng để tính ưu đãi gói.' },
   { id: 'slots', label: 'Khung giờ chơi', icon: 'calendar', desc: 'Các khung giờ để xem nhanh trạng thái sân (vd. Chiều, Tối, Khuya).' },
-  { id: 'pricing', label: 'Giá & ưu đãi', icon: 'sliders', desc: 'Mức giảm áp dụng tự động khi tính giá đề xuất của gói.' },
+  { id: 'modes', label: 'Chế độ đặt sân', icon: 'card', desc: 'Giá dùng chung cho vé lượt và pickup. Bật/tắt theo từng sân ở màn Lịch đặt sân.' },
   { id: 'notify', label: 'Thông báo', icon: 'bell', desc: 'Chọn những cảnh báo gửi tới quản trị.' },
 ];
 
@@ -86,11 +79,11 @@ export default function Settings() {
 
   const dirty = useMemo(() => JSON.stringify(form) !== JSON.stringify(saved), [form, saved]);
   const up = <K extends keyof Settings>(k: K, v: Settings[K]) => setForm((f) => ({ ...f, [k]: v }));
-  type PctKey = 'dDur3' | 'dDur6' | 'dDur12' | 'dOffpeak' | 'dMember';
-  const pct = (k: PctKey) => (v: string) => up(k, Math.max(0, Math.min(90, Number(v.replace(/\D/g, '')) || 0)));
   const updateSlot = (i: number, patch: Partial<PlaySlot>) => setForm((f) => ({ ...f, slots: f.slots.map((s, idx) => (idx === i ? { ...s, ...patch } : s)) }));
   const addSlot = () => setForm((f) => ({ ...f, slots: [...f.slots, { id: 'slot-' + Date.now(), name: 'Khung mới', from: '06:00', to: '09:00' }] }));
   const removeSlot = (i: number) => setForm((f) => ({ ...f, slots: f.slots.filter((_, idx) => idx !== i) }));
+  const digits = (s: string) => Number(s.replace(/\D/g, '').slice(0, 9)) || 0;
+  const bk = (patch: Partial<BookingModes>) => setForm((f) => ({ ...f, booking: { ...f.booking, ...patch } }));
   // Không cho khung giờ trùng nhau (và giờ kết thúc phải sau giờ bắt đầu)
   const slotIssues = useMemo(() => {
     const out: Record<number, string> = {};
@@ -230,7 +223,7 @@ export default function Settings() {
                   <span className="muted">đến</span>
                   <input className="inp" type="time" value={form.offpeakTo} onChange={(e) => up('offpeakTo', e.target.value)} aria-label="Giờ thấp điểm kết thúc" />
                 </div>
-                <span className="field-hint">Gói "chỉ giờ thấp điểm" được giảm {form.dOffpeak}% và chỉ tập trong khung này.</span>
+                <span className="field-hint">Gói "chỉ giờ thấp điểm" chỉ nhận tập trong khung này.</span>
               </div>
             </Body>
           )}
@@ -258,20 +251,43 @@ export default function Settings() {
             </Body>
           )}
 
-          {active === 'pricing' && (
+          {active === 'modes' && (
             <Body>
-              <div>
-                <span className="lbl">Ưu đãi theo thời hạn</span>
-                <div className="tc-grid tc-grid-3" style={{ marginTop: 6 }}>
-                  <PctField label="Gói 3 tháng" value={form.dDur3} onChange={pct('dDur3')} />
-                  <PctField label="Gói 6 tháng" value={form.dDur6} onChange={pct('dDur6')} />
-                  <PctField label="Gói 12 tháng" value={form.dDur12} onChange={pct('dDur12')} />
+              <div className="mode-fixed">
+                <b>Đặt nguyên sân</b>
+                <span className="muted">Luôn bật – đặt cả sân theo giờ với giá sân.</span>
+              </div>
+              <div className="mode-block">
+                <div className="sw-txt" style={{ marginBottom: 4 }}>
+                  <b>Vé lượt (xé vé)</b>
+                  <span>Bán vé vào chơi theo lượt, tính theo số người.</span>
+                </div>
+                <div className="tc-grid mode-opts">
+                  <label className="field">
+                    Giá vé / người (₫)
+                    <input className="inp" inputMode="numeric" value={form.booking.ticketPrice.toLocaleString('vi-VN')} onChange={(e) => bk({ ticketPrice: digits(e.target.value) })} aria-label="Giá vé mỗi người" />
+                  </label>
                 </div>
               </div>
-              <div className="tc-grid" style={{ marginTop: 4 }}>
-                <PctField label="Giảm giờ thấp điểm" value={form.dOffpeak} onChange={pct('dOffpeak')} />
-                <PctField label="Giảm hội viên đặt sân" value={form.dMember} onChange={pct('dMember')} />
+              <div className="mode-block">
+                <div className="sw-txt" style={{ marginBottom: 4 }}>
+                  <b>Pickup (ghép trận)</b>
+                  <span>Mở trận chung sân, người chơi lẻ đăng ký cho đủ sức chứa.</span>
+                </div>
+                <div className="tc-grid mode-opts">
+                  <label className="field">
+                    Sức chứa mặc định / trận (người)
+                    <input className="inp" inputMode="numeric" value={form.booking.pickupCap} onChange={(e) => bk({ pickupCap: Math.max(2, Math.min(50, digits(e.target.value))) })} aria-label="Sức chứa mỗi trận" />
+                  </label>
+                  <label className="field">
+                    Giá / người (₫)
+                    <input className="inp" inputMode="numeric" value={form.booking.pickupPrice.toLocaleString('vi-VN')} onChange={(e) => bk({ pickupPrice: digits(e.target.value) })} aria-label="Giá mỗi người" />
+                  </label>
+                </div>
               </div>
+              <p className="muted" style={{ fontSize: 12 }}>
+                Chọn sân nào cho phép vé lượt / pickup ngay tại màn <b>Lịch đặt sân → Tùy chỉnh sân</b>.
+              </p>
             </Body>
           )}
 
@@ -300,18 +316,6 @@ function Field({ label, value, onChange, type }: { label: string; value: string;
     <label className="field">
       {label}
       <input className="inp" type={type} inputMode={type === 'tel' ? 'tel' : undefined} value={value} onChange={(e) => onChange(e.target.value)} />
-    </label>
-  );
-}
-
-function PctField({ label, value, onChange }: { label: string; value: number; onChange: (v: string) => void }) {
-  return (
-    <label className="field">
-      {label}
-      <span className="pct">
-        <input className="inp" inputMode="numeric" value={value} onChange={(e) => onChange(e.target.value)} aria-label={label} />
-        <span className="fee-unit">%</span>
-      </span>
     </label>
   );
 }

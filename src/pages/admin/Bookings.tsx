@@ -7,6 +7,7 @@ import { SportBadge } from '../../components/SportIcon';
 import { MEMBER_DISCOUNT, NOW_HOUR, TODAY_LABEL, findMemberByPhone, type Sport } from '../../data/mock';
 import { hh, vnd } from '../../lib/format';
 import { useScheduleView } from '../../lib/scheduleView';
+import { loadBookingModes } from '../../lib/bookingModes';
 import { useBookings } from '../../store/bookings';
 import { lockBookings, sportsIn, useCourts } from '../../store/courts';
 
@@ -33,6 +34,12 @@ export default function Bookings() {
   const [phone, setPhone] = useState('0912 345 678');
   const [weekly, setWeekly] = useState(true);
   const [notice, setNotice] = useState<string | null>(null);
+  const [modes] = useState(loadBookingModes);
+  const [mode, setMode] = useState<'court' | 'pickup'>('court');
+  const [withTicket, setWithTicket] = useState(false); // kèm bán vé lượt khi đặt nguyên sân
+  const [tickets, setTickets] = useState(2);
+  const [cap, setCap] = useState(modes.pickupCap);
+  const [players, setPlayers] = useState(1);
 
   const [editing, setEditing] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -45,10 +52,18 @@ export default function Bookings() {
   const court = sel ? (visible.find((c) => c.id === sel.courtId && !c.locked) ?? null) : null;
   const member = findMemberByPhone(phone);
 
+  // Vé lượt & pickup bật/tắt theo từng sân (cấu hình ở Tùy chỉnh sân).
+  // Pickup là chế độ riêng; vé lượt là lựa chọn kèm (tick) ngay trong form đặt nguyên sân.
+  const allowTicket = !!court?.ticket;
+  const allowPickup = !!court?.pickup;
+  const bmode: 'court' | 'pickup' = mode === 'pickup' && allowPickup ? 'pickup' : 'court';
+
   const fits = !!sel && !!court && sel.hour >= view.from && sel.hour + dur <= view.to && isFree(sel.courtId, sel.hour, dur);
   const subtotal = court ? court.price * dur : 0;
   const discount = member ? Math.round(subtotal * MEMBER_DISCOUNT) : 0;
-  const total = subtotal - discount;
+  const ticketQty = bmode === 'court' && allowTicket && withTicket ? tickets : 0;
+  const ticketSum = ticketQty * modes.ticketPrice;
+  const total = subtotal - discount + ticketSum;
 
   const pick = (courtId: string, hour: number) => {
     setSel({ courtId, hour });
@@ -58,20 +73,35 @@ export default function Bookings() {
   const create = (pending: boolean) => {
     if (!sel || !court || !fits) return;
     const name = member ? member.name : 'Khách lẻ';
+    const extras: string[] = [];
+    if (!pending && weekly) extras.push('Cố định hằng tuần');
+    if (ticketQty > 0) extras.push(`+${ticketQty} vé lượt`);
     addBooking({
       courtId: sel.courtId,
       start: sel.hour,
       span: dur,
       state: pending ? 'pending' : 'booked',
       label: name,
-      sub: pending ? 'Chưa cọc' : weekly ? 'Cố định hằng tuần' : undefined,
+      sub: pending ? 'Chưa cọc' : extras.join(' · ') || undefined,
+      tickets: ticketQty || undefined,
     });
     setNotice(
       `${pending ? 'Đã giữ chỗ' : 'Đã xác nhận'} ${court.name}, ${hh(sel.hour)}–${hh(sel.hour + dur)} cho ${name}` +
+        (ticketQty > 0 ? ` (kèm ${ticketQty} vé lượt)` : '') +
         (pending ? ' (chờ cọc).' : ` · thu ${vnd(total)}.`),
     );
     setSel(null);
     setDur(1);
+    setWithTicket(false);
+  };
+
+  const createPickup = () => {
+    if (!sel || !court || !fits) return;
+    addBooking({ courtId: sel.courtId, start: sel.hour, span: dur, state: 'booked', mode: 'pickup', players, capacity: cap, label: `Pickup ${players}/${cap}`, sub: `${vnd(modes.pickupPrice)}/người` });
+    setNotice(`Đã mở trận pickup ${court.name}, ${hh(sel.hour)}–${hh(sel.hour + dur)} · ${players}/${cap} người.`);
+    setSel(null);
+    setDur(1);
+    setMode('court');
   };
 
   const toggleEditing = () => {
@@ -180,6 +210,16 @@ export default function Bookings() {
                   Chủ nhật 18/10 · <b style={{ color: 'var(--ink)' }}>{hh(sel.hour)} – {hh(sel.hour + dur)}</b>
                 </p>
 
+                {allowPickup && (
+                  <div className="field">
+                    <span id="bk-mode">Chế độ đặt</span>
+                    <div className="seg seg-wrap" role="radiogroup" aria-labelledby="bk-mode">
+                      <button type="button" role="radio" aria-checked={bmode === 'court'} className={bmode === 'court' ? 'on' : ''} onClick={() => setMode('court')}>Nguyên sân</button>
+                      <button type="button" role="radio" aria-checked={bmode === 'pickup'} className={bmode === 'pickup' ? 'on' : ''} onClick={() => setMode('pickup')}>Pickup</button>
+                    </div>
+                  </div>
+                )}
+
                 <label className="field">
                   Thời lượng
                   <select className="inp" value={dur} onChange={(e) => setDur(Number(e.target.value))}>
@@ -194,6 +234,30 @@ export default function Bookings() {
                   </div>
                 )}
 
+                {bmode === 'pickup' && (
+                  <>
+                    <div className="ce-row2">
+                      <label className="field">
+                        Sức chứa (người)
+                        <input className="inp" type="number" min={2} max={50} value={cap} onChange={(e) => setCap(Math.max(2, Math.min(50, Number(e.target.value) || 2)))} />
+                      </label>
+                      <label className="field">
+                        Mở đầu (người)
+                        <input className="inp" type="number" min={1} max={cap} value={players} onChange={(e) => setPlayers(Math.max(1, Math.min(cap, Number(e.target.value) || 1)))} />
+                      </label>
+                    </div>
+                    <div style={{ borderTop: '1px solid var(--line)', paddingTop: 16 }}>
+                      <div className="line" style={{ alignItems: 'baseline' }}>
+                        <span className="muted">{vnd(modes.pickupPrice)}/người · còn {Math.max(0, cap - players)} chỗ</span>
+                        <span className="num" style={{ fontSize: 32, fontWeight: 600 }}>{vnd(modes.pickupPrice * players)}</span>
+                      </div>
+                    </div>
+                    <button className="btn btn-primary" type="button" disabled={!fits} onClick={createPickup}>Mở trận pickup</button>
+                  </>
+                )}
+
+                {bmode === 'court' && (
+                <>
                 <label className="field">
                   Số điện thoại khách
                   <input className="inp" type="tel" inputMode="numeric" placeholder="09xx xxx xxx" value={phone} onChange={(e) => setPhone(e.target.value)} />
@@ -218,6 +282,20 @@ export default function Bookings() {
                   <input type="checkbox" checked={weekly} onChange={(e) => setWeekly(e.target.checked)} /> Đặt cố định hằng tuần
                 </label>
 
+                {allowTicket && (
+                  <div>
+                    <label className="check">
+                      <input type="checkbox" checked={withTicket} onChange={(e) => setWithTicket(e.target.checked)} /> Kèm bán vé lượt (xé vé)
+                    </label>
+                    {withTicket && (
+                      <label className="field" style={{ marginTop: 8 }}>
+                        Số vé (người)
+                        <input className="inp" type="number" min={1} max={40} value={tickets} onChange={(e) => setTickets(Math.max(1, Math.min(40, Number(e.target.value) || 1)))} />
+                      </label>
+                    )}
+                  </div>
+                )}
+
                 <div style={{ borderTop: '1px solid var(--line)', paddingTop: 16, display: 'flex', flexDirection: 'column', gap: 8, fontSize: 14 }}>
                   <div className="line">
                     <span className="muted">{vnd(court.price)} × {dur} giờ</span>
@@ -227,6 +305,12 @@ export default function Bookings() {
                     <div className="line">
                       <span className="muted">Ưu đãi hội viên −{MEMBER_DISCOUNT * 100}%</span>
                       <span className="num" style={{ fontSize: 18, color: 'var(--brand)' }}>{vnd(-discount)}</span>
+                    </div>
+                  )}
+                  {ticketQty > 0 && (
+                    <div className="line">
+                      <span className="muted">Vé lượt {vnd(modes.ticketPrice)} × {ticketQty}</span>
+                      <span className="num" style={{ fontSize: 18 }}>{vnd(ticketSum)}</span>
                     </div>
                   )}
                   <div className="line" style={{ alignItems: 'baseline', marginTop: 4 }}>
@@ -243,6 +327,8 @@ export default function Bookings() {
                     Xác nhận &amp; thu tiền
                   </button>
                 </div>
+                </>
+                )}
               </>
             )}
           </>

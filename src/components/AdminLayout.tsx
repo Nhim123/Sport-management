@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from 'react-router-dom';
 import { CURRENT_STAFF } from '../data/mock';
 import { Icon, type IconName } from './Icon';
+import { NotificationCenter } from './NotificationCenter';
 
 const NAV: { to: string; label: string; icon: IconName; end?: boolean }[] = [
   { to: '/', label: 'Tổng quan', icon: 'home', end: true },
@@ -28,6 +29,7 @@ export default function AdminLayout() {
             {n.label}
           </NavLink>
         ))}
+        <NotificationCenter />
         <div className="sidebar-foot">
           <span className="avatar who" style={{ width: 36, height: 36 }} aria-hidden="true">
             {CURRENT_STAFF.ini}

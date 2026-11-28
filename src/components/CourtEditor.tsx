@@ -220,6 +220,8 @@ function CourtForm({
   const [price, setPrice] = useState(initial.price ? String(initial.price) : '');
   const [hidden, setHidden] = useState(!!initial.hidden);
   const [locked, setLocked] = useState(!!initial.locked);
+  const [ticket, setTicket] = useState(!!initial.ticket);
+  const [pickup, setPickup] = useState(!!initial.pickup);
   const [touched, setTouched] = useState(false);
   const [confirmDel, setConfirmDel] = useState(false);
 
@@ -240,6 +242,8 @@ function CourtForm({
       price: priceNum,
       hidden: hidden || undefined,
       locked: locked || undefined,
+      ticket: ticket || undefined,
+      pickup: pickup || undefined,
     });
   };
 
@@ -297,6 +301,17 @@ function CourtForm({
           <input type="checkbox" checked={locked} onChange={(e) => setLocked(e.target.checked)} /> Tạm ngừng nhận đặt (bảo trì)
         </label>
       </div>
+
+      <fieldset className="ce-modes">
+        <legend className="field" style={{ marginBottom: 2 }}>Chế độ đặt cho sân này</legend>
+        <label className="check">
+          <input type="checkbox" checked={ticket} onChange={(e) => setTicket(e.target.checked)} /> Cho phép bán vé lượt (xé vé)
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={pickup} onChange={(e) => setPickup(e.target.checked)} /> Cho phép pickup (ghép trận)
+        </label>
+        <span className="field-hint">Giá vé &amp; pickup đặt chung ở Cài đặt → Chế độ đặt sân.</span>
+      </fieldset>
 
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
         <button className="btn btn-primary" type="submit" style={{ flex: '1 1 100px' }}>{onDelete ? 'Lưu' : 'Thêm sân'}</button>

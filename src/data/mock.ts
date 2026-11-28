@@ -15,6 +15,10 @@ export interface Court {
   hidden?: boolean;
   /** Tạm ngừng nhận đặt (bảo trì dài ngày) – cả hàng trên lịch bị khóa */
   locked?: boolean;
+  /** Cho phép bán vé lượt (xé vé) trên sân này */
+  ticket?: boolean;
+  /** Cho phép pickup (ghép trận) trên sân này */
+  pickup?: boolean;
 }
 
 export interface Booking {
@@ -27,6 +31,19 @@ export interface Booking {
   sub?: string;
   /** Khách đã có mặt tại sân (lễ tân bấm check-in) */
   checkedIn?: boolean;
+  /** Chế độ đặt: 'court' nguyên sân (mặc định), 'ticket' vé lượt, 'pickup' ghép trận */
+  mode?: 'court' | 'ticket' | 'pickup';
+  /** Vé lượt: số vé đã bán (số người) */
+  tickets?: number;
+  /** Pickup: số người đã đăng ký và sức chứa trận */
+  players?: number;
+  capacity?: number;
+  /** Khách đã báo trả tiền qua app, đang chờ CHỦ SÂN xác nhận đã nhận được tiền (app không giữ tiền) */
+  awaitingConfirm?: boolean;
+  /** Số tiền khách báo đã trả (₫) — hiển thị ở thông báo xác nhận */
+  payAmount?: number;
+  /** Cách khách trả: VietQR / Ví / Thẻ / Tại quầy */
+  payMethod?: string;
 }
 
 export const SPORTS: { id: Sport; label: string; short: string }[] = [

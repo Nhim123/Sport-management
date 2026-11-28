@@ -10,11 +10,12 @@ import type { CheckoutState } from './Booking';
 const DEFAULT: CheckoutState = { courtId: 'cl2', dayIndex: 0, dayLabel: 'Chủ nhật 18/10', hour: 19 };
 const HOLD_SECONDS = 9 * 60 + 42;
 
+// App KHÔNG thu hộ tiền. Khách chuyển khoản thẳng cho chủ sân, rồi chủ sân xác nhận đã nhận.
 const METHODS = [
-  { id: 'qr', logo: 'QR', bg: 'var(--info-tint)', fg: 'var(--info)', title: 'Chuyển khoản VietQR', sub: 'Mọi ngân hàng · xác nhận tự động' },
-  { id: 'wallet', logo: 'Ví', bg: 'var(--clay-tint)', fg: 'var(--clay-ink)', title: 'Ví điện tử', sub: 'MoMo, ZaloPay, ShopeePay' },
-  { id: 'card', logo: 'Thẻ', bg: 'var(--surface-sunken)', fg: 'var(--ink)', title: 'Thẻ ATM / Visa / Mastercard' },
-  { id: 'desk', logo: 'Quầy', bg: 'var(--brand-tint)', fg: 'var(--brand-ink)', title: 'Trả tại quầy', sub: 'Cần cọc 50% để giữ sân giờ cao điểm', warn: true },
+  { id: 'qr', logo: 'QR', bg: 'var(--info-tint)', fg: 'var(--info)', title: 'Chuyển khoản VietQR', sub: 'Chuyển thẳng cho chủ sân · chờ xác nhận', label: 'VietQR' },
+  { id: 'wallet', logo: 'Ví', bg: 'var(--clay-tint)', fg: 'var(--clay-ink)', title: 'Ví điện tử', sub: 'MoMo, ZaloPay, ShopeePay', label: 'Ví điện tử' },
+  { id: 'card', logo: 'Thẻ', bg: 'var(--surface-sunken)', fg: 'var(--ink)', title: 'Thẻ ATM / Visa / Mastercard', label: 'Thẻ' },
+  { id: 'desk', logo: 'Quầy', bg: 'var(--brand-tint)', fg: 'var(--brand-ink)', title: 'Trả tại quầy', sub: 'Cần cọc 50% để giữ sân giờ cao điểm', warn: true, label: 'Tại quầy' },
 ];
 
 export default function MemberCheckout() {
@@ -29,6 +30,8 @@ export default function MemberCheckout() {
   const [racket, setRacket] = useState(false);
   const [method, setMethod] = useState('qr');
   const [paid, setPaid] = useState<string | null>(null);
+  // true khi lượt đặt đã được ghi sang lịch đặt sân của cơ sở
+  const [onSchedule, setOnSchedule] = useState(false);
 
   useEffect(() => {
     if (paid) return;
@@ -38,15 +41,34 @@ export default function MemberCheckout() {
 
   const discount = Math.round(court.price * MEMBER_DISCOUNT);
   const total = court.price - discount + (racket ? RACKET_RENT : 0);
+  const deposit = Math.round(total / 2); // cọc 50% khi trả tại quầy
+  const isDeposit = method === 'desk';
   const expired = left === 0;
   const mmss = `${String(Math.floor(left / 60)).padStart(2, '0')}:${String(left % 60).padStart(2, '0')}`;
+
+  const methodLabel = METHODS.find((m) => m.id === method)?.label ?? method;
 
   const pay = () => {
     if (expired) return;
     const code = 'ĐS-' + String(7000 + Math.floor(Math.random() * 999));
-    if (order.dayIndex === 0 && isFree(court.id, order.hour, 1)) {
-      addBooking({ courtId: court.id, start: order.hour, span: 1, state: method === 'desk' ? 'pending' : 'booked', label: me.name.split(' ').slice(-2).join(' '), sub: 'Đặt qua app' });
+    // App không giữ tiền: khách báo đã trả → tạo đơn CHỜ CHỦ SÂN XÁC NHẬN đã nhận tiền.
+    // Chỉ khi chủ sân xác nhận ở màn quản trị, đơn mới chuyển sang "Đã đặt".
+    // Đặt hôm nay mới hiển thị trên lịch "hôm nay"; đặt ngày khác chỉ ghi nhận đơn.
+    const added = order.dayIndex === 0 && isFree(court.id, order.hour, 1);
+    if (added) {
+      addBooking({
+        courtId: court.id,
+        start: order.hour,
+        span: 1,
+        state: 'pending',
+        awaitingConfirm: true,
+        payAmount: isDeposit ? deposit : total,
+        payMethod: methodLabel,
+        label: me.name.split(' ').slice(-2).join(' '),
+        sub: isDeposit ? `App · cọc ${vnd(deposit)} · chờ xác nhận` : `App · chờ xác nhận đã nhận tiền`,
+      });
     }
+    setOnSchedule(added);
     setPaid(code);
   };
 
@@ -56,12 +78,21 @@ export default function MemberCheckout() {
         <span style={{ width: 72, height: 72, borderRadius: 999, background: 'var(--brand)', color: 'var(--on-brand)', display: 'grid', placeItems: 'center' }}>
           <Icon name="check" size={36} />
         </span>
-        <h1 className="m-title">{method === 'desk' ? 'Đã giữ chỗ' : 'Đặt sân thành công'}</h1>
+        <h1 className="m-title">Đã gửi yêu cầu đặt sân</h1>
         <p className="muted">
           {court.name} · {order.dayLabel} · {hh(order.hour)}–{hh(order.hour + 1)}
           <br />
           Mã đặt sân <b style={{ color: 'var(--ink)' }}>{paid}</b>
         </p>
+        {onSchedule && (
+          <div className="book-synced" role="status">
+            <Icon name="timer" size={18} />
+            <span>
+              Đã gửi yêu cầu tới cơ sở · đang chờ <b>chủ sân xác nhận đã nhận {vnd(isDeposit ? deposit : total)}</b> ({methodLabel}).
+              Sân được giữ, báo xác nhận sẽ hiện ở đây khi chủ sân duyệt.
+            </span>
+          </div>
+        )}
         <Link to="/app" className="m-cta" style={{ marginTop: 8 }}>Về trang chủ</Link>
       </div>
     );
@@ -128,13 +159,13 @@ export default function MemberCheckout() {
         </fieldset>
 
         <p style={{ fontSize: 12, lineHeight: '18px', color: 'var(--ink-muted)' }}>
-          Huỷ miễn phí trước 4 giờ. Sau thời hạn này, tiền sân được chuyển thành điểm thưởng cho lần đặt sau.
+          Bạn chuyển khoản thẳng cho chủ sân; cơ sở xác nhận đã nhận tiền thì đơn mới thành <b>Đã đặt</b>. Huỷ miễn phí trước 4 giờ.
         </p>
       </div>
 
       <footer className="m-foot" style={{ display: 'block' }}>
         <button type="button" className="m-cta btn-block" style={{ height: 52, fontSize: 16 }} disabled={expired} onClick={pay}>
-          {expired ? 'Hết thời gian giữ chỗ' : method === 'desk' ? `Giữ chỗ · cọc ${vnd(Math.round(total / 2))}` : `Thanh toán ${vnd(total)}`}
+          {expired ? 'Hết thời gian giữ chỗ' : method === 'desk' ? `Giữ chỗ · cọc ${vnd(Math.round(total / 2))}` : `Tôi đã chuyển ${vnd(total)} · chờ xác nhận`}
         </button>
       </footer>
     </>
